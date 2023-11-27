@@ -74,7 +74,7 @@ public class RedditPostHeaderView extends LinearLayout {
 
 		final TextView title = new TextView(activity);
 		title.setTextSize(19.0f * titleFontScale);
-		title.setTypeface(Fonts.getRobotoLightOrAlternative());
+		title.setTypeface(Fonts.getFiraSansLightOrAlternative());
 		title.setText(post.src.getTitle());
 		title.setContentDescription(post.buildAccessibilityTitle(activity, true));
 		title.setTextColor(Color.WHITE);

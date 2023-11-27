@@ -43,6 +43,7 @@ import org.quantumbadger.redreader.reddit.kthings.RedditIdAndType;
 import org.quantumbadger.redreader.reddit.prepared.RedditChangeDataManager;
 import org.quantumbadger.redreader.reddit.prepared.RedditParsedComment;
 import org.quantumbadger.redreader.reddit.prepared.RedditRenderableComment;
+import org.quantumbadger.redreader.common.Fonts;
 
 
 public class RedditCommentView extends FlingableItemView
@@ -333,6 +334,7 @@ public class RedditCommentView extends FlingableItemView
 
 		mIndentView = rootView.findViewById(R.id.view_reddit_comment_indentview);
 		mHeader = rootView.findViewById(R.id.view_reddit_comment_header);
+		mHeader.setTypeface(Fonts.getFiraSansLightOrAlternative());
 		mBodyHolder = rootView.findViewById(R.id.view_reddit_comment_bodyholder);
 		mIndentedContent = rootView.findViewById(R.id.view_reddit_comment_indented_content);
 

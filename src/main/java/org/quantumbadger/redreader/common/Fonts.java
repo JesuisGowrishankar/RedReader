@@ -29,7 +29,7 @@ public final class Fonts {
 	private static final String TAG = "Fonts";
 
 	@NonNull private static final AtomicReference<Typeface> sVeraMono = new AtomicReference<>();
-	@NonNull private static final AtomicReference<Typeface> sRobotoLight = new AtomicReference<>();
+	@NonNull private static final AtomicReference<Typeface> sFiraSansLight = new AtomicReference<>();
 
 	private Fonts() {}
 
@@ -39,7 +39,7 @@ public final class Fonts {
 
 			try {
 				sVeraMono.set(Typeface.createFromAsset(assetManager, "fonts/VeraMono.ttf"));
-				sRobotoLight.set(Typeface.createFromAsset(assetManager, "fonts/Roboto-Light.ttf"));
+				sFiraSansLight.set(Typeface.createFromAsset(assetManager, "fonts/FiraSans-Light.ttf"));
 
 				Log.i(TAG, "Fonts created");
 
@@ -62,9 +62,9 @@ public final class Fonts {
 	}
 
 	@NonNull
-	public static Typeface getRobotoLightOrAlternative() {
+	public static Typeface getFiraSansLightOrAlternative() {
 
-		final Typeface result = sRobotoLight.get();
+		final Typeface result = sFiraSansLight.get();
 
 		if(result == null) {
 			return Typeface.DEFAULT;

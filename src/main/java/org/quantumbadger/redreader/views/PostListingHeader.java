@@ -70,7 +70,7 @@ public final class PostListingHeader extends LinearLayout {
 			final TextView title = new TextView(activity);
 			title.setText(titleText);
 			title.setTextSize(22.0f);
-			title.setTypeface(Fonts.getRobotoLightOrAlternative());
+			title.setTypeface(Fonts.getFiraSansLightOrAlternative());
 			title.setTextColor(Color.WHITE);
 			greyHeader.addView(title);
 

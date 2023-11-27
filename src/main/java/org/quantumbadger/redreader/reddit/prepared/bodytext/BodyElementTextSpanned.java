@@ -25,6 +25,7 @@ import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.views.LinkifiedTextView;
+import org.quantumbadger.redreader.common.Fonts;
 
 public class BodyElementTextSpanned extends BodyElement implements DynamicSpanned {
 
@@ -57,6 +58,7 @@ public class BodyElementTextSpanned extends BodyElement implements DynamicSpanne
 			final boolean showLinkButtons) {
 
 		mTextView = new LinkifiedTextView(activity);
+		mTextView.setTypeface(Fonts.getFiraSansLightOrAlternative());
 
 		if(textColor != null) {
 			mTextView.setTextColor(textColor);
