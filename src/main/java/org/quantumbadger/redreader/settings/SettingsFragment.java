@@ -21,9 +21,12 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.StringRes;
@@ -56,6 +59,9 @@ import org.quantumbadger.redreader.common.TorCommon;
 import org.quantumbadger.redreader.common.time.TimeDuration;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
 import org.quantumbadger.redreader.reddit.prepared.RedditChangeDataManager;
+import android.preference.PreferenceManager;
+import org.quantumbadger.redreader.common.PrefsUtility;
+import org.quantumbadger.redreader.common.SharedPrefsWrapper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -119,6 +125,7 @@ public final class SettingsFragment extends PreferenceFragmentCompat {
 				R.string.pref_cache_maxage_thumb_key,
 				R.string.pref_cache_maxage_image_key,
 				R.string.pref_cache_maxage_entry_key,
+				R.string.pref_appearance_fontfamily,
 				R.string.pref_appearance_fontscale_global_key,
 				R.string.pref_appearance_fontscale_posts_key,
 				R.string.pref_appearance_fontscale_post_subtitles_key,
@@ -229,6 +236,7 @@ public final class SettingsFragment extends PreferenceFragmentCompat {
 			});
 		}
 
+		final SharedPrefsWrapper sharedPreferences = General.getSharedPrefs(getContext());
 
 		final Preference versionPref =
 				findPreference(getString(R.string.pref_about_version_key));
@@ -242,6 +250,7 @@ public final class SettingsFragment extends PreferenceFragmentCompat {
 				findPreference(getString(R.string.pref_item_backup_preferences_key));
 		final Preference restorePreferencesPref =
 				findPreference(getString(R.string.pref_item_restore_preferences_key));
+
 
 		if(versionPref != null) {
 			versionPref.setSummary(

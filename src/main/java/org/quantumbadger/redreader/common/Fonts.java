@@ -19,9 +19,9 @@ package org.quantumbadger.redreader.common;
 
 import android.content.res.AssetManager;
 import android.graphics.Typeface;
+import android.os.Environment;
 import android.util.Log;
 import androidx.annotation.NonNull;
-
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class Fonts {
@@ -30,6 +30,7 @@ public final class Fonts {
 
 	@NonNull private static final AtomicReference<Typeface> sVeraMono = new AtomicReference<>();
 	@NonNull private static final AtomicReference<Typeface> sFiraSansLight = new AtomicReference<>();
+	@NonNull private static final AtomicReference<Typeface> sCustomFont = new AtomicReference<>();
 
 	private Fonts() {}
 
@@ -38,8 +39,19 @@ public final class Fonts {
 		General.startNewThread("FontCreate", () -> {
 
 			try {
+
 				sVeraMono.set(Typeface.createFromAsset(assetManager, "fonts/VeraMono.ttf"));
-				sFiraSansLight.set(Typeface.createFromAsset(assetManager, "fonts/FiraSans-Light.ttf"));
+//				sFiraSansLight.set(Typeface.createFromAsset(assetManager, "fonts/FiraSans-Light.ttf"));
+
+				if (PrefsUtility.appearance_customfont() == 1) {
+					sCustomFont.set(Typeface.createFromAsset(assetManager, "fonts/FiraSans-Regular.ttf"));
+				}
+				if (PrefsUtility.appearance_customfont() == 2) {
+					sCustomFont.set(Typeface.createFromAsset(assetManager,"fonts/Lato-Regular.ttf"));
+				}
+				if (PrefsUtility.appearance_customfont() == 3) {
+					sCustomFont.set(Typeface.createFromAsset(assetManager, "fonts/OpenSans-Regular.ttf"));
+				}
 
 				Log.i(TAG, "Fonts created");
 
@@ -64,7 +76,7 @@ public final class Fonts {
 	@NonNull
 	public static Typeface getFiraSansLightOrAlternative() {
 
-		final Typeface result = sFiraSansLight.get();
+		final Typeface result = sCustomFont.get();
 
 		if(result == null) {
 			return Typeface.DEFAULT;

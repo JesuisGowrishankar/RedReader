@@ -1111,6 +1111,7 @@
 	<string name="lang_lt" translatable="false">lietuvių kalba</string>
 
 	<!-- 2020-02-03 -->
+	<string name="pref_appearance_fontfamily">pref_appearance_fontfamily</string>
 	<string name="pref_appearance_fontscale_post_subtitles_key" translatable="false">pref_appearance_fontscale_post_subtitles_key</string>
 	<string name="pref_appearance_fontscale_post_subtitles_title">Post subtitles</string>
 	<string name="pref_appearance_fontscale_post_header_titles_key" translatable="false">pref_appearance_fontscale_post_header_titles_key</string>

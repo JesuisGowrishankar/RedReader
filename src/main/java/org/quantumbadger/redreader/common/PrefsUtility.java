@@ -372,6 +372,9 @@ public final class PrefsUtility {
 				"-1"));
 	}
 
+	public static int appearance_customfont() {
+		return Integer.parseInt(getString(R.string.pref_appearance_fontfamily, "1"));
+	}
 	public static float appearance_fontscale_comment_headers() {
 		if(getString(
 				R.string.pref_appearance_fontscale_comment_headers_key,

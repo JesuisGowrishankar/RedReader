@@ -18,6 +18,13 @@
   -->
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory android:title="Font Family">
+		<ListPreference android:title="Custom Font Family"
+				android:key="@string/pref_appearance_fontfamily"
+				android:entries="@array/pref_appearance_customfonts"
+				android:entryValues="@array/pref_appearance_customfonts_return"
+				android:defaultValue="1" />
+	</PreferenceCategory>
 
 	<PreferenceCategory android:title="@string/pref_appearance_fontscale_header">
 
