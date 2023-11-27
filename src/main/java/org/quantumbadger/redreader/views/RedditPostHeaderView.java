@@ -84,6 +84,7 @@ public class RedditPostHeaderView extends LinearLayout {
 				PrefsUtility.appearance_fontscale_post_header_subtitles();
 
 		subtitle = new TextView(activity);
+		subtitle.setTypeface(Fonts.getFiraSansLightOrAlternative());
 		subtitle.setTextSize(13.0f * subtitleFontScale);
 		subtitle.setText(post.buildSubtitle(activity, true));
 		subtitle.setContentDescription(post.buildAccessibilitySubtitle(activity, true));

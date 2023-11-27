@@ -50,6 +50,7 @@ import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyIfNotC
 import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.DisplayUtils;
+import org.quantumbadger.redreader.common.Fonts;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.GenericFactory;
 import org.quantumbadger.redreader.common.Optional;
@@ -263,6 +264,7 @@ public final class RedditPostView extends FlingableItemView
 
 		mCommentsButton = rootView.findViewById(R.id.reddit_post_comments_button);
 		mCommentsText = mCommentsButton.findViewById(R.id.reddit_post_comments_text);
+		mCommentsText.setTypeface(Fonts.getFiraSansLightOrAlternative());
 
 		if(!mCommentsButtonPref) {
 			mInnerView.removeView(mCommentsButton);
@@ -299,6 +301,7 @@ public final class RedditPostView extends FlingableItemView
 		subtitle.setTextSize(
 				TypedValue.COMPLEX_UNIT_PX,
 				subtitle.getTextSize() * subtitleFontScale);
+		subtitle.setTypeface(Fonts.getFiraSansLightOrAlternative());
 
 		mLeftFlingPref =
 				PrefsUtility.pref_behaviour_fling_post_left();
@@ -416,8 +419,10 @@ public final class RedditPostView extends FlingableItemView
 		}
 
 		title.setContentDescription(mPost.buildAccessibilityTitle(mActivity, false));
+		title.setTypeface(Fonts.getFiraSansLightOrAlternative());
 
 		subtitle.setText(mPost.buildSubtitle(mActivity, false));
+		subtitle.setTypeface(Fonts.getFiraSansLightOrAlternative());
 		subtitle.setContentDescription(mPost.buildAccessibilitySubtitle(mActivity, false));
 
 		boolean overlayVisible = true;
