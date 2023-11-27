@@ -2,7 +2,11 @@
 
 buildscript {
 	repositories {
+		gradlePluginPortal()
 		mavenCentral()
+		maven {
+			url = uri("https://www.jitpack.io")
+		}
 		google()
 	}
 	dependencies {
@@ -16,7 +20,7 @@ buildscript {
 }
 
 plugins {
-	id("com.android.application") version("7.3.1") apply(true)
+	id("com.android.application") version("7.4.2") apply(true)
 	kotlin("android") version("1.6.21") apply(true)
 	kotlin("plugin.serialization") version("1.6.21") apply(true)
 	kotlin("plugin.parcelize") version("1.6.21") apply(true)
