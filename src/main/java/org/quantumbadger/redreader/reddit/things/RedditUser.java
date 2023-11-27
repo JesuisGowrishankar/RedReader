@@ -19,29 +19,33 @@ package org.quantumbadger.redreader.reddit.things;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import org.apache.commons.text.StringEscapeUtils;
+import org.quantumbadger.redreader.common.ParcelUtils;
 import org.quantumbadger.redreader.jsonwrap.JsonObject;
 
 public class RedditUser implements Parcelable, JsonObject.JsonDeserializable {
 
-	public int comment_karma;
-	public int link_karma;
+	@Nullable public Integer comment_karma;
+	@Nullable public Integer link_karma;
 
-	public long created;
-	public long created_utc;
+	@Nullable public Long created;
+	@Nullable public Long created_utc;
 
-	public Boolean has_mail;
-	public Boolean has_mod_mail;
-	public boolean is_friend;
-	public boolean is_gold;
-	public boolean is_mod;
-	public boolean over_18;
+	@Nullable public Boolean has_mail;
+	@Nullable public Boolean has_mod_mail;
+	@Nullable public Boolean is_friend;
+	@Nullable public Boolean is_gold;
+	@Nullable public Boolean is_mod;
+	@Nullable public Boolean is_suspended;
+	@Nullable public Boolean over_18;
 
-	public String id;
-	public String modhash;
-	public String name;
-	public String icon_img;
+	@Nullable public String id;
+	@NonNull public String name;
+	@Nullable public String icon_img;
+
+	@Nullable public Boolean is_employee;
 
 	@Override
 	public int describeContents() {
@@ -80,9 +84,10 @@ public class RedditUser implements Parcelable, JsonObject.JsonDeserializable {
 		over_18 = in.readInt() == 1;
 
 		id = in.readString();
-		modhash = in.readString();
 		name = in.readString();
 		icon_img = in.readString();
+
+		is_employee = ParcelUtils.readNullableBoolean(in);
 	}
 
 	@Override
@@ -112,9 +117,10 @@ public class RedditUser implements Parcelable, JsonObject.JsonDeserializable {
 		parcel.writeInt(over_18 ? 1 : 0);
 
 		parcel.writeString(id);
-		parcel.writeString(modhash);
 		parcel.writeString(name);
 		parcel.writeString(icon_img);
+
+		ParcelUtils.writeNullableBoolean(parcel, is_employee);
 	}
 
 	@Nullable
