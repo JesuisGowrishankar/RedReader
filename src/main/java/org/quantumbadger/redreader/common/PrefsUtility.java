@@ -133,6 +133,8 @@ public final class PrefsUtility {
 				|| key.equals(context.getString(
 						R.string.pref_behaviour_post_title_opens_comments_key))
 				|| key.equals(context.getString(
+						R.string.pref_behaviour_post_tap_action_key))
+				|| key.equals(context.getString(
 						R.string.pref_accessibility_say_comment_indent_level_key))
 				|| key.equals(context.getString(
 						R.string.pref_behaviour_collapse_sticky_comments_key))
@@ -523,6 +525,12 @@ public final class PrefsUtility {
 				false);
 	}
 
+	public static boolean pref_album_skip_to_first() {
+		return getBoolean(
+				R.string.pref_album_skip_to_first_key,
+				false);
+	}
+
 	public static boolean pref_appearance_comments_show_floating_toolbar() {
 		return getBoolean(
 				R.string.pref_appearance_comments_show_floating_toolbar_key,
@@ -856,6 +864,17 @@ public final class PrefsUtility {
 		} catch(final Throwable e) {
 			return defaultValue;
 		}
+	}
+
+	public enum PostTapAction {
+		LINK, COMMENTS, TITLE_COMMENTS
+	}
+
+	public static PostTapAction pref_behaviour_post_tap_action() {
+		return PostTapAction.valueOf(StringUtils.asciiUppercase(getString(
+				R.string.pref_behaviour_post_tap_action_key,
+				"link"
+		)));
 	}
 
 	public static boolean pref_behaviour_post_title_opens_comments() {

@@ -623,7 +623,6 @@
         <item>@string/pref_behaviour_postcount_items_all</item>
     </string-array>
 
-
     <!-- 2014-04-13 -->
 
     <string-array name="pref_menus_mainmenu_useritems_items">
@@ -1320,6 +1319,22 @@
 		<item>1</item>
 		<item>2</item>
 		<item>3</item>
+	</string-array>
+
+	<!-- 2023-12-19 -->
+
+	<!-- Constants. Do not change. -->
+	<string-array name="pref_behaviour_post_tap_action_return" translatable="false">
+		<item>link</item>
+		<item>comments</item>
+		<item>title_comments</item>
+	</string-array>
+
+	<!-- Constants. Do not change. -->
+	<string-array name="pref_behaviour_post_tap_action_items">
+		<item>@string/pref_behaviour_post_tap_action_link</item>
+		<item>@string/pref_behaviour_post_tap_action_comments</item>
+		<item>@string/pref_behaviour_post_tap_action_title_comments</item>
 	</string-array>
 
 </resources>

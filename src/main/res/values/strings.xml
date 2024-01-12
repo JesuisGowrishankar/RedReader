@@ -689,7 +689,7 @@
     <string name="sort_comments_qa">Q&amp;A</string>
 
     <!-- 2015-10-31 -->
-    <string name="pref_behaviour_gallery_swipe_length_title">Gallery swipe length</string>
+    <string name="pref_behaviour_gallery_swipe_length_title">Album swipe length</string>
     <string name="pref_behaviour_gallery_swipe_length_key" translatable="false">pref_behaviour_gallery_swipe_length</string>
 
     <!-- 2015-11-19 -->
@@ -1816,5 +1816,18 @@
 	<string name="notification_prompt_message">Would you like to get a notification when you receive a message or reply on Reddit?</string>
 
 	<string name="having_trouble_logging_in">Having trouble logging in? Click here for help.</string>
+
+	<!-- 2023-12-29 -->
+	<string name="pref_behaviour_post_tap_action_key" translatable="false">pref_behaviour_post_tap_action</string>
+	<string name="pref_behaviour_post_tap_action_title" translatable="false">Post tap action</string>
+
+	<string name="pref_behaviour_post_tap_action_link" translatable="false">Open link (default)</string>
+	<string name="pref_behaviour_post_tap_action_comments" translatable="false">Open comments</string>
+	<string name="pref_behaviour_post_tap_action_title_comments" translatable="false">Title text opens comments, subtitle/whitespace opens link</string>
+
+	<string name="pref_header_album_viewer">Album viewer</string>
+
+	<string name="pref_album_skip_to_first_key" translatable="false">pref_album_skip_to_first_key</string>
+	<string name="pref_album_skip_to_first_title">Automatically open first album image</string>
 
 </resources>
