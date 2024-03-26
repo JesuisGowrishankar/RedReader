@@ -167,6 +167,7 @@ public final class PrefsUtility {
 				|| context.getString(R.string.pref_appearance_hide_toolbar_on_scroll_key)
 						.equals(key)
 				|| context.getString(R.string.pref_behaviour_block_screenshots_key).equals(key)
+				|| context.getString(R.string.pref_appearance_fontfamily).equals(key)
 				|| context.getString(R.string.pref_behaviour_keep_screen_awake_key).equals(key);
 	}
 
