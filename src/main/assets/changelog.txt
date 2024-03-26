@@ -1,3 +1,7 @@
+112/1.24
+Ability to block users in user profile (thanks to folkemat)
+Dependency updates and reorganisation (thanks to Alexey Rochev)
+
 111/1.23.1
 Added a preference to automatically open the first image in an album
 Made links blue again in dark themes
