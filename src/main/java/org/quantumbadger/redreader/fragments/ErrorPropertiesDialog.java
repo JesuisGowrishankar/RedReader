@@ -20,9 +20,12 @@ package org.quantumbadger.redreader.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.widget.LinearLayout;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.activities.BugReportActivity;
@@ -60,11 +63,11 @@ public final class ErrorPropertiesDialog extends PropertiesDialog {
 		}
 
 		if(error.url != null) {
-			args.putString("url", error.url);
+			args.putString("url", error.url.value);
 		}
 
-		if(error.response != null) {
-			args.putString("response", error.response.toString());
+		if(error.responseString != null) {
+			args.putString("response", error.responseString);
 		}
 
 		dialog.setArguments(args);

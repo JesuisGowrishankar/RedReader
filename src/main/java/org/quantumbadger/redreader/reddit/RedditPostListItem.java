@@ -18,7 +18,9 @@
 package org.quantumbadger.redreader.reddit;
 
 import android.view.ViewGroup;
+
 import androidx.recyclerview.widget.RecyclerView;
+
 import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.adapters.GroupedRecyclerViewAdapter;
 import org.quantumbadger.redreader.fragments.PostListingFragment;

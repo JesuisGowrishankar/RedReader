@@ -15,36 +15,31 @@
  * along with RedReader.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.quantumbadger.redreader.http.body;
+package org.quantumbadger.redreader.common
 
-import androidx.annotation.NonNull;
-import org.quantumbadger.redreader.common.Consumer;
-import org.quantumbadger.redreader.http.body.multipart.Part;
+import android.net.Uri
+import android.os.Parcelable
+import androidx.compose.runtime.Immutable
+import kotlinx.parcelize.Parcelize
 
-import java.util.ArrayList;
+@Immutable
+@Parcelize
+data class UriString(
+	@JvmField
+	val value: String
+) : Parcelable {
+	override fun toString() = value
 
-public class HTTPRequestBodyMultipart implements HTTPRequestBody {
+	fun toUri() = Uri.parse(value)
 
-	@NonNull private final ArrayList<Part> mParts = new ArrayList<>();
+	companion object {
+		@JvmStatic
+		fun fromNullable(value: String?) = value?.let { UriString(it) }
 
-	@NonNull
-	public HTTPRequestBodyMultipart addPart(@NonNull final Part part) {
-		mParts.add(part);
-		return this;
-	}
+		@JvmStatic
+		fun from(value: Uri) = UriString(value.toString())
 
-	@NonNull
-	public ArrayList<Part> getParts() {
-		return mParts;
-	}
-
-	public void forEachPart(@NonNull final Consumer<Part> consumer) {
-		for(final Part part : mParts) {
-			consumer.consume(part);
-		}
-	}
-
-	@NonNull public <E> E visit(@NonNull final Visitor<E> visitor) {
-		return visitor.visitRequestBody(this);
+		@JvmStatic
+		fun from(value: Uri.Builder) = UriString(value.toString())
 	}
 }

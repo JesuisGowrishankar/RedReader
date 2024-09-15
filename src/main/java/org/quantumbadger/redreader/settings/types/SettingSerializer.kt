@@ -15,32 +15,23 @@
  * along with RedReader.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.quantumbadger.redreader.common;
+package org.quantumbadger.redreader.settings.types
 
-import androidx.annotation.NonNull;
+interface SettingSerializer<T> {
+	fun serialize(value: T): String
+	fun deserialize(value: String): T?
+}
 
-public class Priority {
+interface SerializableEnum<T : Enum<T>> {
+	val stringValue: String
+}
 
-	public final int primary;
-	public final int secondary;
+class EnumSettingSerializer<T>(
+	values: Iterable<T>
+) : SettingSerializer<T> where T : SerializableEnum<T>, T : Enum<T> {
 
-	public Priority(final int primary, final int secondary) {
-		this.primary = primary;
-		this.secondary = secondary;
-	}
+	private val lookupTable = values.associateBy { it.stringValue }
 
-	public Priority(final int primary) {
-		this.primary = primary;
-		this.secondary = 0;
-	}
-
-	public final boolean isHigherPriorityThan(@NonNull final Priority other) {
-
-		if(primary != other.primary) {
-			return primary < other.primary;
-
-		} else {
-			return secondary < other.secondary;
-		}
-	}
+	override fun serialize(value: T) = value.stringValue
+	override fun deserialize(value: String) = lookupTable[value]
 }

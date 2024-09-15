@@ -19,8 +19,10 @@ package org.quantumbadger.redreader.reddit.prepared;
 
 import android.content.Context;
 import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.common.Optional;
 import org.quantumbadger.redreader.common.RRThemeAttributes;

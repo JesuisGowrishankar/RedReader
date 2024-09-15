@@ -17,8 +17,11 @@
 
 package org.quantumbadger.redreader.cache.downloadstrategy;
 
+import androidx.compose.runtime.Immutable;
+
 import org.quantumbadger.redreader.cache.CacheEntry;
 
+@Immutable
 public interface DownloadStrategy {
 
 	boolean shouldDownloadWithoutCheckingCache();

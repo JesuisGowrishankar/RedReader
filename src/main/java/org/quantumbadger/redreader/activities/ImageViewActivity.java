@@ -24,7 +24,6 @@ import android.graphics.Color;
 import android.graphics.Movie;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
@@ -39,16 +38,21 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.annotation.StringRes;
 import androidx.annotation.UiThread;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.source.MergingMediaSource;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+
 import com.github.lzyzsd.circleprogress.DonutProgress;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.MergingMediaSource;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.cache.CacheManager;
@@ -63,6 +67,7 @@ import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.Priority;
 import org.quantumbadger.redreader.common.RRError;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.datastream.SeekableInputStream;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
 import org.quantumbadger.redreader.fragments.ImageInfoDialog;
@@ -93,14 +98,13 @@ import org.quantumbadger.redreader.views.video.ExoPlayerWrapperView;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ImageViewActivity extends BaseActivity
+public class ImageViewActivity extends ViewsBaseActivity
 		implements RedditPostView.PostSelectionListener,
 		ImageViewDisplayListManager.Listener {
 
@@ -114,7 +118,7 @@ public class ImageViewActivity extends BaseActivity
 
 	private ExoPlayerWrapperView mVideoPlayerWrapper;
 
-	private String mUrl;
+	private UriString mUrl;
 
 	private boolean mIsPaused = true;
 	private boolean mIsDestroyed = false;
@@ -159,9 +163,7 @@ public class ImageViewActivity extends BaseActivity
 					WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		}
 
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-			getWindow().setNavigationBarColor(Color.BLACK);
-		}
+		getWindow().setNavigationBarColor(Color.BLACK);
 
 		setTitle(R.string.accessibility_image_viewer_title);
 
@@ -171,7 +173,7 @@ public class ImageViewActivity extends BaseActivity
 
 		final Intent intent = getIntent();
 
-		mUrl = intent.getDataString();
+		mUrl = UriString.fromNullable(intent.getDataString());
 
 		if(mUrl == null) {
 			finish();
@@ -183,7 +185,7 @@ public class ImageViewActivity extends BaseActivity
 		if(intent.hasExtra("albumUrl")) {
 			LinkHandler.getAlbumInfo(
 					this,
-					intent.getStringExtra("albumUrl"),
+					intent.getParcelableExtra("albumUrl"),
 					new Priority(Constants.Priority.IMAGE_VIEW),
 					new GetAlbumInfoListener() {
 
@@ -274,30 +276,11 @@ public class ImageViewActivity extends BaseActivity
 
 					@Override
 					public void onSuccess(final ImageInfo info) {
-
 						mImageInfo = info;
-
-						final URI uri = General.uriFromString(info.urlOriginal);
-						final URI audioUri;
-
-						if(uri == null) {
-
-							General.quickToast(
-									ImageViewActivity.this,
-									R.string.imageview_image_info_failed);
-
-							revertToWeb();
-							return;
-						}
-
-						if(info.urlAudioStream == null) {
-							audioUri = null;
-
-						} else {
-							audioUri = General.uriFromString(info.urlAudioStream);
-						}
-
-						openImage(progressBar, uri, audioUri);
+						final UriString audioUri = info.urlAudioStream == null
+								? null
+								: info.urlAudioStream;
+						openImage(progressBar, info.original.url, audioUri);
 					}
 
 					@Override
@@ -480,8 +463,8 @@ public class ImageViewActivity extends BaseActivity
 
 				Log.i(TAG, "Fully downloading before starting playback");
 
-				try {
-					videoStream.create().readRemainingAsBytes((buf, offset, length)
+				try(SeekableInputStream is = videoStream.create()) {
+					is.readRemainingAsBytes((buf, offset, length)
 							-> Log.i(TAG, "Video fully downloaded, starting playback"));
 
 				} catch(final IOException e) {
@@ -566,9 +549,9 @@ public class ImageViewActivity extends BaseActivity
 	public void onPostCommentsSelected(final RedditPreparedPost post) {
 		LinkHandler.onLinkClicked(
 				this,
-				PostCommentListingURL.forPostId(post.src.getIdAlone())
+				new UriString(PostCommentListingURL.forPostId(post.src.getIdAlone())
 						.generateJsonUri()
-						.toString(),
+						.toString()),
 				false);
 	}
 
@@ -614,7 +597,7 @@ public class ImageViewActivity extends BaseActivity
 		Log.i(TAG, "Using external browser");
 
 		final Runnable r = () -> {
-			LinkHandler.openWebBrowser(this, Uri.parse(mUrl), false);
+			LinkHandler.openWebBrowser(this, mUrl.toUri(), false);
 			finish();
 		};
 
@@ -732,7 +715,7 @@ public class ImageViewActivity extends BaseActivity
 
 					LinkHandler.onLinkClicked(
 							this,
-							mAlbumInfo.images.get(mAlbumImageIndex - 1).urlOriginal,
+							mAlbumInfo.images.get(mAlbumImageIndex - 1).original.url,
 							false,
 							mPost,
 							mAlbumInfo,
@@ -756,7 +739,7 @@ public class ImageViewActivity extends BaseActivity
 
 					LinkHandler.onLinkClicked(
 							this,
-							mAlbumInfo.images.get(mAlbumImageIndex + 1).urlOriginal,
+							mAlbumInfo.images.get(mAlbumImageIndex + 1).original.url,
 							false,
 							mPost,
 							mAlbumInfo,
@@ -807,8 +790,8 @@ public class ImageViewActivity extends BaseActivity
 
 	private void openImage(
 			final DonutProgress progressBar,
-			final URI uri,
-			@Nullable final URI audioUri) {
+			final UriString uri,
+			@Nullable final UriString audioUri) {
 
 		if(mImageInfo.mediaType != null) {
 
@@ -866,17 +849,13 @@ public class ImageViewActivity extends BaseActivity
 		makeCacheRequest(progressBar, uri, audioUri);
 	}
 
-
 	private void manageAspectRatioIndicator(final DonutProgress progressBar) {
 		findAspectRatio:
 		if(PrefsUtility.pref_appearance_show_aspect_ratio_indicator()) {
 
-			if(mImageInfo.width != null
-					&& mImageInfo.height != null
-					&& mImageInfo.width > 0
-					&& mImageInfo.height > 0) {
-				progressBar.setLoadingImageAspectRatio((float)mImageInfo.width
-						/ mImageInfo.height);
+			if(mImageInfo.original.size != null && mImageInfo.original.size.getHeight() > 0) {
+				progressBar.setLoadingImageAspectRatio((float)mImageInfo.original.size.getWidth()
+						/ mImageInfo.original.size.getHeight());
 			} else {
 				break findAspectRatio;
 			}
@@ -890,8 +869,8 @@ public class ImageViewActivity extends BaseActivity
 
 	private void makeCacheRequest(
 			final DonutProgress progressBar,
-			final URI uri,
-			@Nullable final URI audioUri) {
+			final UriString uri,
+			@Nullable final UriString audioUri) {
 
 		final Object resultLock = new Object();
 
@@ -909,7 +888,7 @@ public class ImageViewActivity extends BaseActivity
 				new Priority(Constants.Priority.IMAGE_VIEW),
 				DownloadStrategyIfNotCached.INSTANCE,
 				Constants.FileType.IMAGE,
-				CacheRequest.DOWNLOAD_QUEUE_IMMEDIATE,
+				CacheRequest.DownloadQueueType.IMMEDIATE,
 				this,
 				new CacheRequestCallbacks() {
 
@@ -999,7 +978,7 @@ public class ImageViewActivity extends BaseActivity
 					new Priority(Constants.Priority.IMAGE_VIEW),
 					DownloadStrategyIfNotCached.INSTANCE,
 					Constants.FileType.IMAGE,
-					CacheRequest.DOWNLOAD_QUEUE_IMMEDIATE,
+					CacheRequest.DownloadQueueType.IMMEDIATE,
 					this,
 					new CacheRequestCallbacks() {
 						@Override
@@ -1099,6 +1078,7 @@ public class ImageViewActivity extends BaseActivity
 		finish();
 	}
 
+	@OptIn(markerClass = UnstableApi.class)
 	@UiThread
 	private void playWithExoplayer(
 			final boolean isNetwork,
@@ -1218,7 +1198,7 @@ public class ImageViewActivity extends BaseActivity
 
 				Log.i(TAG, "Got byte array");
 
-				@SuppressWarnings("deprecation") final Movie movie;
+				final Movie movie;
 
 				try {
 					movie = GIFView.prepareMovie(buf, offset, length);

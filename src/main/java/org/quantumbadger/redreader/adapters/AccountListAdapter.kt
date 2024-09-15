@@ -25,7 +25,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -35,6 +35,7 @@ import org.quantumbadger.redreader.account.RedditAccountManager
 import org.quantumbadger.redreader.activities.OAuthLoginActivity
 import org.quantumbadger.redreader.common.BetterSSB
 import org.quantumbadger.redreader.common.LinkHandler
+import org.quantumbadger.redreader.common.UriString
 import org.quantumbadger.redreader.reddit.api.RedditOAuth.needsRelogin
 import org.quantumbadger.redreader.viewholders.VH1Text
 
@@ -47,9 +48,9 @@ class AccountListAdapter(private val context: AppCompatActivity, private val fra
 
 	init {
 		val attr = context.obtainStyledAttributes(intArrayOf(R.attr.rrIconAdd, R.attr.rrIconPerson))
-		rrIconAdd = ContextCompat.getDrawable(context, attr.getResourceId(0, 0))
+		rrIconAdd = AppCompatResources.getDrawable(context, attr.getResourceId(0, 0))
 		//noinspection ResourceType: bug in Lint
-		rrIconUser = ContextCompat.getDrawable(context, attr.getResourceId(1, 0))
+		rrIconUser = AppCompatResources.getDrawable(context, attr.getResourceId(1, 0))
 		attr.recycle()
 	}
 
@@ -90,7 +91,7 @@ class AccountListAdapter(private val context: AppCompatActivity, private val fra
 		dialog.findViewById<MaterialTextView>(R.id.login_preprompt_help_link)!!.apply {
 			paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
 			setOnClickListener {
-				LinkHandler.onLinkClicked(this@AccountListAdapter.context, "https://redreader.org/loginhelp/")
+				LinkHandler.onLinkClicked(this@AccountListAdapter.context, UriString("https://redreader.org/loginhelp/"))
 			}
 		}
 	}

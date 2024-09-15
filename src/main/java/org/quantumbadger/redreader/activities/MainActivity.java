@@ -33,10 +33,13 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.RedReader;
@@ -45,12 +48,14 @@ import org.quantumbadger.redreader.account.RedditAccountChangeListener;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.adapters.MainMenuSelectionListener;
 import org.quantumbadger.redreader.common.AndroidCommon;
+import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.DialogUtils;
 import org.quantumbadger.redreader.common.FeatureFlagHandler;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.SharedPrefsWrapper;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.collections.CollectionStream;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
 import org.quantumbadger.redreader.fragments.AccountListDialog;
@@ -277,6 +282,14 @@ public class MainActivity extends RefreshableActivity
 				onSelected(UserPostListingURL.getSubmitted(username));
 				break;
 
+			case MainMenuFragment.MENU_MENU_ACTION_SUBMITTED_COMMENTS:
+				LinkHandler.onLinkClicked(
+						this,
+						Constants.Reddit.getUri("/user/" + username + "/comments.json"),
+						false
+				);
+				break;
+
 			case MainMenuFragment.MENU_MENU_ACTION_SAVED:
 				onSelected(UserPostListingURL.getSaved(username));
 				break;
@@ -294,7 +307,7 @@ public class MainActivity extends RefreshableActivity
 				break;
 
 			case MainMenuFragment.MENU_MENU_ACTION_PROFILE:
-				LinkHandler.onLinkClicked(this, new UserProfileURL(username).toString());
+				LinkHandler.onLinkClicked(this, new UserProfileURL(username).toUriString());
 				break;
 
 			case MainMenuFragment.MENU_MENU_ACTION_CUSTOM: {
@@ -517,12 +530,14 @@ public class MainActivity extends RefreshableActivity
 					}
 				}
 
-				LinkHandler.onLinkClicked(this, userInput);
+				LinkHandler.onLinkClicked(this, new UriString(userInput));
 
 				break;
 
 			case "url": {
-				LinkHandler.onLinkClicked(this, editText.getText().toString().trim());
+				LinkHandler.onLinkClicked(
+						this,
+						new UriString(editText.getText().toString().trim()));
 				break;
 			}
 
@@ -724,7 +739,7 @@ public class MainActivity extends RefreshableActivity
 		} else {
 			LinkHandler.onLinkClicked(
 					this,
-					PostCommentListingURL.forPostId(post.src.getIdAlone()).toString(),
+					PostCommentListingURL.forPostId(post.src.getIdAlone()).toUriString(),
 					false);
 		}
 	}

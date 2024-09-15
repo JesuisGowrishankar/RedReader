@@ -19,7 +19,6 @@ package org.quantumbadger.redreader.activities
 
 import android.content.Intent
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
@@ -27,8 +26,9 @@ import com.google.android.material.button.MaterialButton
 import org.quantumbadger.redreader.R
 import org.quantumbadger.redreader.common.LinkHandler
 import org.quantumbadger.redreader.common.PrefsUtility
+import org.quantumbadger.redreader.common.UriString
 
-class RedditTermsActivity : BaseActivity() {
+class RedditTermsActivity : ViewsBaseActivity() {
 
 	companion object {
 
@@ -50,9 +50,7 @@ class RedditTermsActivity : BaseActivity() {
 
 		super.onCreate(savedInstanceState)
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-			window.navigationBarColor = Color.rgb(0x55, 0x55, 0x55)
-		}
+		window.navigationBarColor = Color.rgb(0x55, 0x55, 0x55)
 
 		setBaseActivityListing(R.layout.reddit_terms_activity)
 
@@ -72,7 +70,7 @@ class RedditTermsActivity : BaseActivity() {
 		onClick(R.id.terms_button_view) {
 			LinkHandler.onLinkClicked(
 				this,
-				"https://www.redditinc.com/policies/user-agreement-april-18-2023"
+				UriString("https://www.redditinc.com/policies/user-agreement-april-18-2023")
 			)
 		}
 

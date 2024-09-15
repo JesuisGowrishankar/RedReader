@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.common.Fonts;
 import org.quantumbadger.redreader.common.General;

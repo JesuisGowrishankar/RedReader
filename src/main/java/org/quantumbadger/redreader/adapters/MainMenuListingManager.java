@@ -27,12 +27,15 @@ import android.net.Uri;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import androidx.appcompat.content.res.AppCompatResources;
+
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
@@ -44,6 +47,7 @@ import org.quantumbadger.redreader.common.Optional;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.ScreenreaderPronunciation;
 import org.quantumbadger.redreader.common.SharedPrefsWrapper;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.fragments.MainMenuFragment;
 import org.quantumbadger.redreader.receivers.announcements.Announcement;
 import org.quantumbadger.redreader.receivers.announcements.AnnouncementDownloader;
@@ -159,19 +163,19 @@ public class MainMenuListingManager {
 					R.attr.rrIconAccountSearch
 			});
 
-			rrIconPerson = ContextCompat.getDrawable(activity, attr.getResourceId(0, 0));
-			rrIconEnvOpen = ContextCompat.getDrawable(activity, attr.getResourceId(1, 0));
-			rrIconSentMessages = ContextCompat.getDrawable(activity, attr.getResourceId(2,0));
-			rrIconSend = ContextCompat.getDrawable(activity, attr.getResourceId(3, 0));
-			rrIconStarFilled = ContextCompat.getDrawable(
+			rrIconPerson = AppCompatResources.getDrawable(activity, attr.getResourceId(0, 0));
+			rrIconEnvOpen = AppCompatResources.getDrawable(activity, attr.getResourceId(1, 0));
+			rrIconSentMessages = AppCompatResources.getDrawable(activity, attr.getResourceId(2,0));
+			rrIconSend = AppCompatResources.getDrawable(activity, attr.getResourceId(3, 0));
+			rrIconStarFilled = AppCompatResources.getDrawable(
 					activity,
 					attr.getResourceId(4, 0));
-			rrIconCross = ContextCompat.getDrawable(activity, attr.getResourceId(5, 0));
-			rrIconUpvote = ContextCompat.getDrawable(activity, attr.getResourceId(6, 0));
-			rrIconDownvote = ContextCompat.getDrawable(
+			rrIconCross = AppCompatResources.getDrawable(activity, attr.getResourceId(5, 0));
+			rrIconUpvote = AppCompatResources.getDrawable(activity, attr.getResourceId(6, 0));
+			rrIconDownvote = AppCompatResources.getDrawable(
 					activity,
 					attr.getResourceId(7, 0));
-			rrIconAccountSearch = Objects.requireNonNull(ContextCompat.getDrawable(
+			rrIconAccountSearch = Objects.requireNonNull(AppCompatResources.getDrawable(
 					activity,
 					attr.getResourceId(8, 0)));
 
@@ -186,7 +190,9 @@ public class MainMenuListingManager {
 				mAdapter.appendToGroup(
 						GROUP_MAIN_ITEMS,
 						makeItem(
-								R.string.mainmenu_frontpage,
+								user.isAnonymous()
+										? R.string.mainmenu_frontpage
+										: R.string.mainmenu_subscribed_posts,
 								MainMenuFragment.MENU_MENU_ACTION_FRONTPAGE,
 								null,
 								true));
@@ -346,6 +352,18 @@ public class MainMenuListingManager {
 							makeItem(
 									R.string.mainmenu_submitted,
 									MainMenuFragment.MENU_MENU_ACTION_SUBMITTED,
+									rrIconSend,
+									isFirst.getAndSet(false)));
+				}
+
+				if(mainMenuUserItems.contains(
+					MainMenuFragment.MainMenuUserItems.SUBMITTED_COMMENTS)
+				){
+					mAdapter.appendToGroup(
+							GROUP_USER_ITEMS,
+							makeItem(
+									R.string.mainmenu_submitted_comments,
+									MainMenuFragment.MENU_MENU_ACTION_SUBMITTED_COMMENTS,
 									rrIconSend,
 									isFirst.getAndSet(false)));
 				}
@@ -685,7 +703,7 @@ public class MainMenuListingManager {
 						subreddit));
 
 			} else {
-				LinkHandler.onLinkClicked(mActivity, subreddit.toString());
+				LinkHandler.onLinkClicked(mActivity, new UriString(subreddit.toString()));
 			}
 		};
 
@@ -827,8 +845,7 @@ public class MainMenuListingManager {
 			final AppCompatActivity activity,
 			final SubredditAction action) {
 
-		final String url = Constants.Reddit.getNonAPIUri(subredditCanonicalId.toString())
-				.toString();
+		final UriString url = Constants.Reddit.getNonAPIUri(subredditCanonicalId.toString());
 
 		final RedditSubredditSubscriptionManager subMan = RedditSubredditSubscriptionManager
 				.getSingleton(
@@ -842,7 +859,7 @@ public class MainMenuListingManager {
 				LinkHandler.shareText(
 						activity,
 						subredditCanonicalId.toString(),
-						LinkHandler.getPreferredRedditUriString(url));
+						LinkHandler.getPreferredRedditUriString(url).toString());
 				break;
 			}
 
@@ -850,7 +867,7 @@ public class MainMenuListingManager {
 				final ClipboardManager clipboardManager
 						= (ClipboardManager)activity.getSystemService(Context.CLIPBOARD_SERVICE);
 				if(clipboardManager != null) {
-					final ClipData data = ClipData.newPlainText(null, url);
+					final ClipData data = ClipData.newPlainText(null, url.value);
 					clipboardManager.setPrimaryClip(data);
 
 					General.quickToast(
@@ -862,7 +879,7 @@ public class MainMenuListingManager {
 
 			case EXTERNAL: {
 				final Intent intent = new Intent(Intent.ACTION_VIEW);
-				intent.setData(Uri.parse(url));
+				intent.setData(Uri.parse(url.value));
 				activity.startActivity(intent);
 				break;
 			}

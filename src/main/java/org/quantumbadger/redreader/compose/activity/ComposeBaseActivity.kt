@@ -15,31 +15,30 @@
  * along with RedReader.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.quantumbadger.redreader.cache.downloadstrategy;
+package org.quantumbadger.redreader.compose.activity
 
-import org.quantumbadger.redreader.cache.CacheEntry;
-import org.quantumbadger.redreader.common.TimestampBound;
+import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.ComposeView
+import org.quantumbadger.redreader.activities.BaseActivity
+import org.quantumbadger.redreader.common.PrefsUtility
+import org.quantumbadger.redreader.compose.ctx.RRComposeContext
 
-public class DownloadStrategyIfTimestampOutsideBounds implements DownloadStrategy {
-
-	private final TimestampBound mTimestampBound;
-
-	public DownloadStrategyIfTimestampOutsideBounds(final TimestampBound timestampBound) {
-		mTimestampBound = timestampBound;
+open class ComposeBaseActivity: BaseActivity() {
+	override fun onCreate(savedInstanceState: Bundle?) {
+		enableEdgeToEdge()
+		PrefsUtility.applyTheme(this)
+		super.onCreate(savedInstanceState)
 	}
 
-	@Override
-	public boolean shouldDownloadWithoutCheckingCache() {
-		return false;
-	}
-
-	@Override
-	public boolean shouldDownloadIfCacheEntryFound(final CacheEntry entry) {
-		return !mTimestampBound.verifyTimestamp(entry.timestamp);
-	}
-
-	@Override
-	public boolean shouldDownloadIfNotCached() {
-		return true;
+	protected fun setContentCompose(content: @Composable () -> Unit) {
+		setContentView(ComposeView(this).also { view ->
+			view.setContent {
+				RRComposeContext(this) {
+					content()
+				}
+			}
+		})
 	}
 }

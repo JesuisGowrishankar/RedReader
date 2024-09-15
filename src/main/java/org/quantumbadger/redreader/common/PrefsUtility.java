@@ -20,12 +20,13 @@ package org.quantumbadger.redreader.common;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
-import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.MenuItem;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.activities.OptionsMenuUtility;
 import org.quantumbadger.redreader.adapters.MainMenuListingManager;
@@ -39,6 +40,7 @@ import org.quantumbadger.redreader.reddit.api.RedditAPICommentAction;
 import org.quantumbadger.redreader.reddit.api.RedditPostActions;
 import org.quantumbadger.redreader.reddit.things.InvalidSubredditNameException;
 import org.quantumbadger.redreader.reddit.things.SubredditCanonicalId;
+import org.quantumbadger.redreader.settings.types.AppearanceTheme;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -121,6 +123,8 @@ public final class PrefsUtility {
 						R.string.pref_appearance_hide_headertoolbar_postlist_key))
 				|| key.equals(context.getString(
 					R.string.pref_appearance_hide_comments_from_blocked_users_key))
+				|| key.equals(context.getString(
+						R.string.pref_appearance_highlight_own_username_key))
 				|| key.equals(context.getString(R.string.pref_images_thumbnail_size_key))
 				|| key.equals(context.getString(R.string.pref_images_inline_image_previews_key))
 				|| key.equals(context.getString(
@@ -199,10 +203,6 @@ public final class PrefsUtility {
 		return AppearanceTwopane.valueOf(StringUtils.asciiUppercase(getString(
 				R.string.pref_appearance_twopane_key,
 				"auto")));
-	}
-
-	public enum AppearanceTheme {
-		RED, GREEN, BLUE, LTBLUE, ORANGE, GRAY, NIGHT, NIGHT_LOWCONTRAST, ULTRABLACK
 	}
 
 	public static boolean isNightMode() {
@@ -322,14 +322,7 @@ public final class PrefsUtility {
 			@NonNull final Locale locale) {
 
 		Locale.setDefault(locale);
-
-		if(Build.VERSION.SDK_INT >= 17) {
-			conf.setLocale(locale);
-		} else {
-			//noinspection deprecation
-			conf.locale = locale;
-		}
-
+		conf.setLocale(locale);
 	}
 
 	public static NeverAlwaysOrWifiOnly appearance_thumbnails_show() {
@@ -588,6 +581,12 @@ public final class PrefsUtility {
 				false);
 	}
 
+	public static boolean pref_appearance_highlight_own_username() {
+		return getBoolean(
+				R.string.pref_appearance_highlight_own_username_key,
+				true);
+	}
+
 	public enum AppearancePostSubtitleItem {
 		AUTHOR,
 		FLAIR,
@@ -784,7 +783,7 @@ public final class PrefsUtility {
 	public static boolean pref_behaviour_usecustomtabs() {
 		return getBoolean(
 				R.string.pref_behaviour_usecustomtabs_key,
-				false);
+				true) && !network_tor();
 	}
 
 	public static void set_pref_behaviour_notifications(final boolean enabled) {
@@ -808,7 +807,7 @@ public final class PrefsUtility {
 	public static boolean pref_behaviour_video_playback_controls() {
 		return getBoolean(
 				R.string.pref_behaviour_video_playback_controls_key,
-				false);
+				true);
 	}
 
 	public static boolean pref_behaviour_video_mute_default() {
@@ -920,6 +919,7 @@ public final class PrefsUtility {
 		EXTERNAL_BROWSER
 	}
 
+	@NonNull
 	public static AlbumViewMode pref_behaviour_albumview_mode() {
 		return AlbumViewMode.valueOf(StringUtils.asciiUppercase(getString(
 				R.string.pref_behaviour_albumview_mode_key,
@@ -941,6 +941,7 @@ public final class PrefsUtility {
 		}
 	}
 
+	@NonNull
 	public static GifViewMode pref_behaviour_gifview_mode() {
 		return GifViewMode.valueOf(StringUtils.asciiUppercase(getString(
 				R.string.pref_behaviour_gifview_mode_key,
@@ -962,6 +963,7 @@ public final class PrefsUtility {
 		}
 	}
 
+	@NonNull
 	public static VideoViewMode pref_behaviour_videoview_mode() {
 		return VideoViewMode.valueOf(StringUtils.asciiUppercase(getString(
 				R.string.pref_behaviour_videoview_mode_key,
@@ -992,12 +994,14 @@ public final class PrefsUtility {
 		DISABLED
 	}
 
+	@NonNull
 	public static PostFlingAction pref_behaviour_fling_post_left() {
 		return PostFlingAction.valueOf(StringUtils.asciiUppercase(getString(
 				R.string.pref_behaviour_fling_post_left_key,
 				"downvote")));
 	}
 
+	@NonNull
 	public static PostFlingAction pref_behaviour_fling_post_right() {
 		return PostFlingAction.valueOf(StringUtils.asciiUppercase(getString(
 				R.string.pref_behaviour_fling_post_right_key,
@@ -1008,6 +1012,7 @@ public final class PrefsUtility {
 		COLLAPSE, NOTHING
 	}
 
+	@NonNull
 	public static SelfpostAction pref_behaviour_self_post_tap_actions() {
 		return SelfpostAction.valueOf(StringUtils.asciiUppercase(getString(
 				R.string.pref_behaviour_self_post_tap_actions_key,

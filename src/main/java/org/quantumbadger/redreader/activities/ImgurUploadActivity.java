@@ -31,7 +31,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.cache.CacheManager;
@@ -45,10 +47,11 @@ import org.quantumbadger.redreader.common.Optional;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.Priority;
 import org.quantumbadger.redreader.common.RRError;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
 import org.quantumbadger.redreader.http.FailedRequestBody;
-import org.quantumbadger.redreader.http.body.HTTPRequestBodyMultipart;
-import org.quantumbadger.redreader.http.body.multipart.PartFormDataBinary;
+import org.quantumbadger.redreader.http.body.HTTPRequestBody;
+import org.quantumbadger.redreader.http.body.multipart.Part;
 import org.quantumbadger.redreader.image.ThumbnailScaler;
 import org.quantumbadger.redreader.jsonwrap.JsonObject;
 import org.quantumbadger.redreader.jsonwrap.JsonValue;
@@ -59,7 +62,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
-public class ImgurUploadActivity extends BaseActivity {
+public class ImgurUploadActivity extends ViewsBaseActivity {
 
 	private TextView mTextView;
 
@@ -272,16 +275,18 @@ public class ImgurUploadActivity extends BaseActivity {
 
 		showLoadingOverlay();
 
+		final UriString apiUrl = new UriString("https://api.imgur.com/3/image");
+
 		CacheManager.getInstance(this).makeRequest(new CacheRequest(
-				General.uriFromString("https://api.imgur.com/3/image"),
+				apiUrl,
 				RedditAccountManager.getInstance(this).getDefaultAccount(),
 				null,
 				new Priority(Constants.Priority.API_ACTION),
 				DownloadStrategyAlways.INSTANCE,
 				Constants.FileType.NOCACHE,
-				CacheRequest.DOWNLOAD_QUEUE_IMGUR_API,
-				new HTTPRequestBodyMultipart()
-						.addPart(new PartFormDataBinary("image", mImageData)),
+				CacheRequest.DownloadQueueType.IMGUR_API,
+				new HTTPRequestBody.Multipart()
+						.addPart(new Part.FormDataBinary("image", mImageData)),
 				this,
 				new CacheRequestJSONParser(this, new CacheRequestJSONParser.Listener() {
 					@Override
@@ -305,7 +310,7 @@ public class ImgurUploadActivity extends BaseActivity {
 							if(!Boolean.TRUE.equals(success)) {
 								onFailure(General.getGeneralErrorForFailure(
 										ImgurUploadActivity.this,
-										CacheRequest.REQUEST_FAILURE_UPLOAD_FAIL_IMGUR,
+										CacheRequest.RequestFailureType.UPLOAD_FAIL_IMGUR,
 										null,
 										null,
 										null,
@@ -319,10 +324,10 @@ public class ImgurUploadActivity extends BaseActivity {
 						} catch(final Throwable t) {
 							onFailure(General.getGeneralErrorForFailure(
 									ImgurUploadActivity.this,
-									CacheRequest.REQUEST_FAILURE_PARSE_IMGUR,
+									CacheRequest.RequestFailureType.PARSE_IMGUR,
 									t,
 									null,
-									t.toString(),
+									apiUrl,
 									Optional.of(new FailedRequestBody(result))));
 							return;
 						}

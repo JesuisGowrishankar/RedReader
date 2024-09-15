@@ -27,9 +27,11 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
@@ -48,6 +50,7 @@ import org.quantumbadger.redreader.common.RRError;
 import org.quantumbadger.redreader.common.RRThemeAttributes;
 import org.quantumbadger.redreader.common.SharedPrefsWrapper;
 import org.quantumbadger.redreader.common.StringUtils;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.datastream.SeekableInputStream;
 import org.quantumbadger.redreader.common.time.TimeDuration;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
@@ -72,11 +75,10 @@ import org.quantumbadger.redreader.views.liststatus.ErrorView;
 import org.quantumbadger.redreader.views.liststatus.LoadingView;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public final class InboxListingActivity extends BaseActivity {
+public final class InboxListingActivity extends ViewsBaseActivity {
 
 	private static final int OPTIONS_MENU_MARK_ALL_AS_READ = 0;
 	private static final int OPTIONS_MENU_SHOW_UNREAD_ONLY = 1;
@@ -237,7 +239,7 @@ public final class InboxListingActivity extends BaseActivity {
 				.getDefaultAccount();
 		final CacheManager cm = CacheManager.getInstance(context);
 
-		final URI url;
+		final UriString url;
 
 		if(inboxType == InboxType.SENT) {
 			url = Constants.Reddit.getUri("/message/sent.json?limit=100");
@@ -259,7 +261,7 @@ public final class InboxListingActivity extends BaseActivity {
 				new Priority(Constants.Priority.API_INBOX_LIST),
 				DownloadStrategyAlways.INSTANCE,
 				Constants.FileType.INBOX_LIST,
-				CacheRequest.DOWNLOAD_QUEUE_REDDIT_API,
+				CacheRequest.DownloadQueueType.REDDIT_API,
 				false,
 				context,
 				new CacheRequestCallbacks() {
@@ -397,10 +399,10 @@ public final class InboxListingActivity extends BaseActivity {
 						} catch(final Exception e) {
 							onFailure(General.getGeneralErrorForFailure(
 									context,
-									CacheRequest.REQUEST_FAILURE_PARSE,
+									CacheRequest.RequestFailureType.PARSE,
 									e,
 									null,
-									e.toString(),
+									url,
 									FailedRequestBody.from(streamFactory)));
 						}
 					}

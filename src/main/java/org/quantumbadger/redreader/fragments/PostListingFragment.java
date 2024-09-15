@@ -26,12 +26,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import org.apache.commons.text.StringEscapeUtils;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
@@ -60,6 +62,7 @@ import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.Priority;
 import org.quantumbadger.redreader.common.RRError;
 import org.quantumbadger.redreader.common.TimestampBound;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.datastream.SeekableInputStream;
 import org.quantumbadger.redreader.common.time.TimeDuration;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
@@ -95,7 +98,6 @@ import org.quantumbadger.redreader.views.SearchListingHeader;
 import org.quantumbadger.redreader.views.liststatus.ErrorView;
 
 import java.io.IOException;
-import java.net.URI;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -179,7 +181,7 @@ public class PostListingFragment extends RRFragment
 									true,
 									new RuntimeException(),
 									null,
-									url.toString(),
+									UriString.from(url),
 									null)));
 			// TODO proper error handling
 			throw new RuntimeException("Invalid post listing URL");
@@ -255,7 +257,7 @@ public class PostListingFragment extends RRFragment
 		}
 
 		mRequest = createPostListingRequest(
-				mPostListingURL.generateJsonUri(),
+				UriString.from(mPostListingURL.generateJsonUri()),
 				RedditAccountManager.getInstance(context).getDefaultAccount(),
 				session,
 				downloadStrategy,
@@ -425,7 +427,7 @@ public class PostListingFragment extends RRFragment
 				mPostListingURL = mPostListingURL.asSubredditPostListURL()
 						.changeSubreddit(RedditSubreddit.stripRPrefix(mSubreddit.url));
 				mRequest = createPostListingRequest(
-						mPostListingURL.generateJsonUri(),
+						UriString.from(mPostListingURL.generateJsonUri()),
 						RedditAccountManager.getInstance(getContext())
 								.getDefaultAccount(),
 						mSession,
@@ -548,7 +550,7 @@ public class PostListingFragment extends RRFragment
 						: DownloadStrategyNever.INSTANCE;
 
 				mRequest = createPostListingRequest(
-						newUri,
+						UriString.from(newUri),
 						RedditAccountManager.getInstance(getActivity())
 								.getDefaultAccount(),
 						mSession,
@@ -647,7 +649,7 @@ public class PostListingFragment extends RRFragment
 
 	@NonNull
 	private CacheRequest createPostListingRequest(
-				final Uri url,
+				final UriString url,
 				final RedditAccount user,
 				final UUID requestSession,
 				final DownloadStrategy downloadStrategy,
@@ -656,13 +658,13 @@ public class PostListingFragment extends RRFragment
 		final AppCompatActivity activity = getActivity();
 
 		return new CacheRequest(
-				General.uriFromString(url.toString()),
+				url,
 				user,
 				requestSession,
 				new Priority(Constants.Priority.API_POST_LIST),
 				downloadStrategy,
 				Constants.FileType.POST_LIST,
-				CacheRequest.DOWNLOAD_QUEUE_REDDIT_API,
+				CacheRequest.DownloadQueueType.REDDIT_API,
 				activity,
 				new CacheRequestCallbacks() {
 					@Override
@@ -971,10 +973,10 @@ public class PostListingFragment extends RRFragment
 						} catch(final Throwable t) {
 							onFailure(General.getGeneralErrorForFailure(
 									activity,
-									CacheRequest.REQUEST_FAILURE_PARSE,
+									CacheRequest.RequestFailureType.PARSE,
 									t,
 									null,
-									url.toString(),
+									url,
 									FailedRequestBody.from(streamFactory)));
 						}
 					}
@@ -1002,14 +1004,7 @@ public class PostListingFragment extends RRFragment
 		final CommentListingController controller = new CommentListingController(
 				PostCommentListingURL.forPostId(preparedPost.src.getIdAlone()));
 
-		final URI url = General.uriFromString(controller.getUri().toString());
-
-		if(url == null) {
-			if(General.isSensitiveDebugLoggingEnabled()) {
-				Log.i(TAG, String.format("Not precaching '%s': failed to parse URL", url));
-			}
-			return;
-		}
+		final UriString url = UriString.from(controller.getUri());
 
 		CacheManager.getInstance(activity)
 				.makeRequest(new CacheRequest(
@@ -1022,7 +1017,7 @@ public class PostListingFragment extends RRFragment
 						new DownloadStrategyIfTimestampOutsideBounds(
 								TimestampBound.notOlderThan(TimeDuration.minutes(15))),
 						Constants.FileType.COMMENT_LIST,
-						CacheRequest.DOWNLOAD_QUEUE_REDDIT_API,
+						CacheRequest.DownloadQueueType.REDDIT_API,
 						// Don't parse the JSON
 						activity,
 						new CacheRequestCallbacks() {
@@ -1062,13 +1057,13 @@ public class PostListingFragment extends RRFragment
 			@NonNull final PrefsUtility.VideoViewMode videoViewMode) {
 
 		// Don't precache huge images
-		if(info.size != null
-				&& info.size > 15 * 1024 * 1024) {
+		if(info.original.sizeBytes != null
+				&& info.original.sizeBytes > 15 * 1024 * 1024) {
 			if(General.isSensitiveDebugLoggingEnabled()) {
 				Log.i(TAG, String.format(
 						"Not precaching '%s': too big (%d kB)",
-						info.urlOriginal,
-						info.size / 1024));
+						info.original.url,
+						info.original.sizeBytes / 1024));
 			}
 			return;
 		}
@@ -1080,7 +1075,7 @@ public class PostListingFragment extends RRFragment
 			if(General.isSensitiveDebugLoggingEnabled()) {
 				Log.i(TAG, String.format(
 						"Not precaching '%s': GIFs opened externally",
-						info.urlOriginal));
+						info.original.url));
 			}
 			return;
 		}
@@ -1092,7 +1087,7 @@ public class PostListingFragment extends RRFragment
 			if(General.isSensitiveDebugLoggingEnabled()) {
 				Log.i(TAG, String.format(
 						"Not precaching '%s': images opened externally",
-						info.urlOriginal));
+						info.original.url));
 			}
 			return;
 		}
@@ -1105,14 +1100,14 @@ public class PostListingFragment extends RRFragment
 			if(General.isSensitiveDebugLoggingEnabled()) {
 				Log.i(TAG, String.format(
 						"Not precaching '%s': videos opened externally",
-						info.urlOriginal));
+						info.original.url));
 			}
 			return;
 		}
 
 		precacheImage(
 				activity,
-				info.urlOriginal,
+				info.original.url,
 				positionInList);
 
 		if(info.urlAudioStream != null) {
@@ -1125,19 +1120,11 @@ public class PostListingFragment extends RRFragment
 
 	private void precacheImage(
 			final Activity activity,
-			final String url,
+			final UriString url,
 			final int positionInList) {
 
-		final URI uri = General.uriFromString(url);
-		if(uri == null) {
-			if(General.isSensitiveDebugLoggingEnabled()) {
-				Log.i(TAG, String.format("Not precaching '%s': failed to parse URL", url));
-			}
-			return;
-		}
-
 		CacheManager.getInstance(activity).makeRequest(new CacheRequest(
-				uri,
+				url,
 				RedditAccountManager.getAnon(),
 				null,
 				new Priority(
@@ -1145,7 +1132,7 @@ public class PostListingFragment extends RRFragment
 						positionInList),
 				DownloadStrategyIfNotCached.INSTANCE,
 				Constants.FileType.IMAGE,
-				CacheRequest.DOWNLOAD_QUEUE_IMAGE_PRECACHE,
+				CacheRequest.DownloadQueueType.IMAGE_PRECACHE,
 				activity,
 				new CacheRequestCallbacks() {
 					@Override

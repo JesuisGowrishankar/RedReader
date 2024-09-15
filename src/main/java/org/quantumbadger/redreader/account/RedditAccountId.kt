@@ -14,18 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with RedReader.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+package org.quantumbadger.redreader.account
 
-package org.quantumbadger.redreader.http.body.multipart;
+import androidx.compose.runtime.Immutable
+import org.quantumbadger.redreader.common.asciiLowercase
 
-import androidx.annotation.NonNull;
+@Immutable
+data class RedditAccountId(val username: String) {
+	val canonicalUsername = username.trim().asciiLowercase()
 
-public interface Part {
-
-	interface Visitor<E> {
-		@NonNull E visitPart(@NonNull PartFormData part);
-		@NonNull E visitPart(@NonNull PartFormDataBinary part);
+	companion object {
+		val ANON = RedditAccountId("")
 	}
-
-	@NonNull <E> E visit(@NonNull Visitor<E> visitor);
-
 }

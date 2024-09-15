@@ -15,23 +15,36 @@
  * along with RedReader.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.quantumbadger.redreader.http.body.multipart;
+package org.quantumbadger.redreader.http
 
-import androidx.annotation.NonNull;
+import java.io.UnsupportedEncodingException
+import java.net.URLEncoder
 
-public class PartFormDataBinary implements Part {
+data class PostField(val name: String, val value: String) {
 
-	@NonNull public final String name;
-	@NonNull public final byte[] value;
-
-	public PartFormDataBinary(@NonNull final String name, @NonNull final byte[] value) {
-		this.name = name;
-		this.value = value;
+	fun encode(): String {
+		try {
+			return (URLEncoder.encode(name, "UTF-8")
+					+ "="
+					+ URLEncoder.encode(value, "UTF-8"))
+		} catch (e: UnsupportedEncodingException) {
+			throw RuntimeException(e)
+		}
 	}
 
-	@NonNull
-	public <E> E visit(@NonNull final Visitor<E> visitor) {
-		return visitor.visitPart(this);
-	}
+	companion object {
+		fun encodeList(fields: List<PostField>): String {
+			val result = StringBuilder()
 
+			for (field in fields) {
+				if (result.isNotEmpty()) {
+					result.append('&')
+				}
+
+				result.append(field.encode())
+			}
+
+			return result.toString()
+		}
+	}
 }

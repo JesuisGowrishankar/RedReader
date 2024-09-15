@@ -1,3 +1,45 @@
+/Alpha 357 (2024-08-25)
+Fix "Malformed URL" error for Imgur images (thanks to Alexey Rochev)
+Remove red background/border behind transparent images in the gallery
+Gallery theme fixes for devices which forcibly modify app colors in dark mode
+Fix for swiping between images when "Automatically open first album image" is enabled
+Enable haptics for long-clicking in gallery viewer
+
+/Alpha 356 (2024-08-18)
+Preference change: video playback controls now enabled by default (Settings > Images/Video > Enable video playback controls)
+Preference change: custom tabs now enabled by default (Settings > Behaviour > Use Android Custom Tabs)
+Disable Custom Tabs if Tor is enabled
+
+/Alpha 355 (2024-08-04)
+Added accessibility actions for moving between top-level comments (thanks to codeofdusk)
+Album viewer: preferences for card rounded corners and horizontal padding
+Album viewer: back button
+Album viewer: compact title option
+Album viewer: fix image card scaling issue
+
+/Alpha 354 (2024-07-06)
+Workaround for requestFocus exception in album view
+
+/Alpha 353 (2024-07-06)
+Improved gallery viewer with card, list, and grid modes
+Improved network performance
+Add Submitted Comments as an optional main menu user item (thanks to folkemat)
+Fixed crash with some Reddit links in share format
+Fixed issue where some GIFs wouldn't play
+Renamed some menu items and labels for clarity
+Support for Imgur album URLs containing title
+
+/Alpha 352 (2024-06-16)
+Dependency updates and reorganisation (thanks to Alexey Rochev)
+Migrating from ExoPlayer to Media3 (thanks to Alexey Rochev)
+
+/Alpha 351 (2024-06-01)
+Minimum supported Android version is now 5.0
+
+/Alpha 350 (2024-04-14)
+Ability to upload an image when submitting a comment (thanks to folkemat)
+Comments submitted by current user now have username highlighted (thanks to folkemat)
+
 /Alpha 349 (2024-03-24)
 Ability to block users in user profile (thanks to folkemat)
 Dependency updates and reorganisation (thanks to Alexey Rochev)

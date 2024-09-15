@@ -140,7 +140,8 @@
     <!-- Main Menu -->
 
     <string name="mainmenu_frontpage">Front Page</string>
-    <string name="mainmenu_all">All Subreddits</string>
+	<string name="mainmenu_subscribed_posts">Subscribed Posts</string>
+    <string name="mainmenu_all">All Posts</string>
     <string name="mainmenu_custom">Custom Subreddit</string>
     <string name="mainmenu_custom_invalid_name">Invalid subreddit name.</string>
     <string name="mainmenu_saved">Saved Posts</string>
@@ -222,7 +223,7 @@
     <string name="action_actionmenu_short">Actions</string>
     <string name="action_actionmenu">Open Action Menu</string>
     <string name="action_comment_links">Links in Comment</string>
-    <string name="action_selftext_links">Links in Self Text</string>
+    <string name="action_selftext_links">Links in Text</string>
     <string name="action_share">Share</string>
     <string name="action_share_comments">Share Comments</string>
     <string name="action_copy">Copy</string>
@@ -434,7 +435,7 @@
     <string name="message_cannotlogin">Could not log in.</string>
 
     <string name="error_toast_no_urls_in_comment">No URLs found in this comment.</string>
-    <string name="error_toast_no_urls_in_self">No URLs found in this self text.</string>
+    <string name="error_toast_no_urls_in_self">No URLs found in this text.</string>
     <string name="error_toast_parent_post_not_downloaded">Parent post not downloaded yet.</string>
 
     <string name="download_subreddits">Downloading subreddits…</string>
@@ -767,7 +768,7 @@
 	<string name="submit_post_specify_subreddit">Specify subreddit</string>
 	<string name="submit_post_title_empty">Title cannot be empty</string>
 	<string name="submit_post_url_empty">URL cannot be empty</string>
-	<string name="submit_post_self_text_hint">Self Text</string>
+	<string name="submit_post_self_text_hint">Text</string>
 	<string name="submit_post_url_hint">URL</string>
 
 	<!-- 2016-06-24 -->
@@ -834,7 +835,6 @@
 	<string name="pref_appearance_navbar_color_option_primary">Primary (light)</string>
 	<string name="pref_appearance_navbar_color_option_primarydark">Primary (dark)</string>
 
-	<string name="pref_not_supported_before_lollipop">Not supported before Android Lollipop</string>
 
 	<!-- 2016-08-03 -->
 	<string name="action_copy_text">Copy Text</string>
@@ -971,7 +971,7 @@
 	<string name="action_unsubscribe_subreddit">Unsubscribe from Subreddit</string>
 
 	<!-- 2017-04-14 -->
-	<string name="collapsed_self_post">Self post collapsed</string>
+	<string name="collapsed_self_post">Post collapsed</string>
 
 	<!-- 2017-05-08 -->
 	<string name="button_next_comment_parent">Next Parent Comment</string>
@@ -986,7 +986,7 @@
 
 	<!--2017-05-21-->
 	<string name="pref_behaviour_self_post_tap_actions_key" translatable="false">pref_behaviour_self_post_tap_actions</string>
-	<string name="pref_behaviour_self_post_tap_actions_title">Self post tap</string>
+	<string name="pref_behaviour_self_post_tap_actions_title">Post text tap</string>
 
 	<!-- 2017-06-05 -->
 	<string name="lang_in" translatable="false">Bahasa Indonesia</string>
@@ -1056,7 +1056,7 @@
 	<!-- 2018-07-08 -->
 	<string name="pref_behaviour_usecustomtabs_key" translatable="false">pref_behaviour_usecustomtabs_key</string>
 	<string name="pref_behaviour_usecustomtabs_title">Use Android Custom Tabs</string>
-	<string name="pref_behaviour_usecustomtabs_summary">Use Android Custom Tabs when available</string>
+	<string name="pref_behaviour_usecustomtabs_summary">Use an installed browser with Custom Tabs integration, rather than the system WebView</string>
 
 	<!-- 2018-09-11 -->
 	<string name="pref_behaviour_hide_read_posts_key" translatable="false">pref_behaviour_hide_read_posts</string>
@@ -1383,7 +1383,7 @@
 	<string name="accessibility_subtitle_author_withperiod">Author: %s.</string>
 	<string name="accessibility_subtitle_subreddit_withperiod">Sub-reddit: %s.</string>
 	<string name="accessibility_subtitle_domain_withperiod">Domain: %s.</string>
-	<string name="accessibility_subtitle_selfpost_withperiod">Self post.</string>
+	<string name="accessibility_subtitle_selfpost_withperiod">Text post.</string>
 	<string name="accessibility_subtitle_points_unknown_withperiod">Score hidden.</string>
 	<string name="accessibility_subtitle_edited_since_being_posted">Edited.</string>
 	<string name="accessibility_subtitle_comment_collapsed">Comment collapsed.</string>
@@ -1432,7 +1432,7 @@
 	<string name="prefs_category_accessibility">Accessibility</string>
 
 	<string name="pref_accessibility_separate_body_text_lines_title">Separate body text lines</string>
-	<string name="pref_accessibility_separate_body_text_lines_summary">In comment and self post body text, make each line individually focusable, rather than reading the whole comment at once</string>
+	<string name="pref_accessibility_separate_body_text_lines_summary">In comment and post body text, make each line individually focusable, rather than reading the whole comment at once</string>
 	<string name="pref_accessibility_separate_body_text_lines_key" translatable="false">pref_accessibility_separate_body_text_lines_key</string>
 
 	<!-- 2020-12-27 -->
@@ -1531,8 +1531,6 @@
 	<string name="backup_preferences_success">Backup successful</string>
 	<string name="restore_preferences_success">Restore successful</string>
 
-	<string name="backup_preferences_error_old_android_title">System too old</string>
-	<string name="backup_preferences_error_old_android_message">This feature requires Android 4.4 or above.</string>
 
 	<string name="error_no_file_manager_title">No file manager</string>
 	<string name="error_no_file_manager_message">The operating system on this device is missing a file manager compatible with the Android Storage Access Framework. If a file manager is present, it may be disabled.</string>
@@ -1827,7 +1825,7 @@
 
 	<string name="pref_header_album_viewer">Album viewer</string>
 
-	<string name="pref_album_skip_to_first_key" translatable="false">pref_album_skip_to_first_key</string>
+	<string name="pref_album_skip_to_first_key" translatable="false">pref_album_skip_to_first_key_2</string>
 	<string name="pref_album_skip_to_first_title">Automatically open first album image</string>
 
 	<!-- 2024-01-06 -->
@@ -1850,4 +1848,59 @@
 	<string name="block_permission_denied_message">A new login is required to enable RedReader to handle the blocking of users. Please do a re-login and try again.</string>
 	<string name="block_permission_denied_title">Missing permission to block</string>
 	<string name="block_permission_denied_relogin">Re-login</string>
+
+	<!-- 2024-04-14 -->
+	<string name="comment_upload_picture">Upload picture</string>
+	<string name="comment_picture_pretext">Picture</string>
+
+	<string name="pref_appearance_highlight_own_username_key" translatable="false">pref_appearance_highlight_own_username</string>
+	<string name="pref_appearance_highlight_own_username_title">Highlight your own username in comments</string>
+
+	<!-- 2024-06-16 -->
+	<string name="mainmenu_submitted_comments">Submitted Comments</string>
+
+	<!-- 2024-07-01 -->
+	<string name="error_resolution_button_retry">Retry</string>
+	<string name="error_image_decode_failed">Image data corrupt</string>
+
+	<plurals name="album_image_count">
+		<item quantity="one">"%d image"</item>
+		<item quantity="other">"%d images"</item>
+	</plurals>
+
+	<string name="album_card_view">Card view</string>
+	<string name="album_list_view">List view</string>
+	<string name="album_grid_view">Grid view</string>
+
+	<string name="album_card_pref_buttons">Buttons on cards</string>
+
+	<string name="album_list_pref_thumbnails">Show thumbnails</string>
+	<string name="album_list_pref_thumbnail_size">Thumbnail size</string>
+	<string name="album_list_pref_buttons">Show buttons</string>
+
+	<string name="album_grid_pref_crop_to_square">Crop to square</string>
+	<string name="album_grid_pref_column_count">Columns</string>
+
+	<string name="album_pref_all_settings">All settings</string>
+
+	<string name="album_link_button">Link</string>
+	
+	<string name="radio_button_selected">Selected</string>
+	<string name="radio_button_not_selected">Not selected</string>
+
+	<string name="checkbox_checked">Checked</string>
+	<string name="checkbox_not_checked">Not checked</string>
+
+	<string name="error_title">Error</string>
+
+	<string name="error_invalid_account_title">Invalid account</string>
+	<string name="error_invalid_account_message">Selected account is not currently logged in</string>
+
+	<!-- 2024-08-04 -->
+	<string name="album_more_options">More settings</string>
+
+	<string name="album_grid_pref_rounded_corners">Rounded corners</string>
+	<string name="album_grid_pref_horizontal_padding">Horizontal padding</string>
+
+	<string name="album_pref_compact_title">Compact title</string>
 </resources>

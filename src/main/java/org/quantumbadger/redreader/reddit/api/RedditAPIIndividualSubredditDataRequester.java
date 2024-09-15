@@ -19,7 +19,9 @@ package org.quantumbadger.redreader.reddit.api;
 
 import android.content.Context;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
+
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
@@ -31,6 +33,7 @@ import org.quantumbadger.redreader.common.Optional;
 import org.quantumbadger.redreader.common.Priority;
 import org.quantumbadger.redreader.common.RRError;
 import org.quantumbadger.redreader.common.TimestampBound;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
 import org.quantumbadger.redreader.http.FailedRequestBody;
 import org.quantumbadger.redreader.io.CacheDataSource;
@@ -42,7 +45,6 @@ import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
 import org.quantumbadger.redreader.reddit.things.RedditThing;
 import org.quantumbadger.redreader.reddit.things.SubredditCanonicalId;
 
-import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
@@ -71,7 +73,8 @@ public class RedditAPIIndividualSubredditDataRequester implements
 			final TimestampBound timestampBound,
 			final RequestResponseHandler<RedditSubreddit, RRError> handler) {
 
-		final URI url = Constants.Reddit.getUri(subredditCanonicalId.toString() + "/about.json");
+		final UriString url
+				= Constants.Reddit.getUri(subredditCanonicalId.toString() + "/about.json");
 
 		final CacheRequest aboutSubredditCacheRequest = new CacheRequest(
 				url,
@@ -80,7 +83,7 @@ public class RedditAPIIndividualSubredditDataRequester implements
 				new Priority(Constants.Priority.API_SUBREDDIT_INVIDIVUAL),
 				DownloadStrategyAlways.INSTANCE,
 				Constants.FileType.SUBREDDIT_ABOUT,
-				CacheRequest.DOWNLOAD_QUEUE_REDDIT_API,
+				CacheRequest.DownloadQueueType.REDDIT_API,
 				context,
 				new CacheRequestJSONParser(context, new CacheRequestJSONParser.Listener() {
 					@Override
@@ -101,10 +104,10 @@ public class RedditAPIIndividualSubredditDataRequester implements
 						} catch(final Exception e) {
 							handler.onRequestFailed(General.getGeneralErrorForFailure(
 									context,
-									CacheRequest.REQUEST_FAILURE_PARSE,
+									CacheRequest.RequestFailureType.PARSE,
 									e,
 									null,
-									url.toString(),
+									url,
 									Optional.of(new FailedRequestBody(result))));
 						}
 					}

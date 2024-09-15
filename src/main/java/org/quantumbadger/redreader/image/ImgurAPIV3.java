@@ -18,7 +18,9 @@
 package org.quantumbadger.redreader.image;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
+
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
@@ -29,6 +31,7 @@ import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.Optional;
 import org.quantumbadger.redreader.common.Priority;
 import org.quantumbadger.redreader.common.RRError;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
 import org.quantumbadger.redreader.http.FailedRequestBody;
 import org.quantumbadger.redreader.jsonwrap.JsonObject;
@@ -39,25 +42,25 @@ import java.util.UUID;
 public final class ImgurAPIV3 {
 
 	public static void getAlbumInfo(
-			final Context context,
-			final String albumUrl,
-			final String albumId,
+			@NonNull final Context context,
+			final UriString albumUrl,
+			@NonNull final String albumId,
 			@NonNull final Priority priority,
 			final boolean withAuth,
-			final GetAlbumInfoListener listener) {
+			@NonNull final GetAlbumInfoListener listener) {
 
-		final String apiUrl = "https://api.imgur.com/3/album/" + albumId;
+		final UriString apiUrl = new UriString("https://api.imgur.com/3/album/" + albumId);
 
 		CacheManager.getInstance(context).makeRequest(new CacheRequest(
-				General.uriFromString(apiUrl),
+				apiUrl,
 				RedditAccountManager.getAnon(),
 				null,
 				priority,
 				DownloadStrategyIfNotCached.INSTANCE,
 				Constants.FileType.IMAGE_INFO,
 				withAuth
-						? CacheRequest.DOWNLOAD_QUEUE_IMGUR_API
-						: CacheRequest.DOWNLOAD_QUEUE_IMMEDIATE,
+						? CacheRequest.DownloadQueueType.IMGUR_API
+						: CacheRequest.DownloadQueueType.IMMEDIATE,
 				context,
 				new CacheRequestJSONParser(context, new CacheRequestJSONParser.Listener() {
 					@Override
@@ -69,12 +72,13 @@ public final class ImgurAPIV3 {
 
 						try {
 							final JsonObject outer = result.asObject().getObject("data");
-							listener.onSuccess(AlbumInfo.parseImgurV3(albumUrl, outer));
+							final AlbumInfo album = AlbumInfo.parseImgurV3(albumUrl, outer);
+							listener.onSuccess(album);
 
 						} catch(final Throwable t) {
 							listener.onFailure(General.getGeneralErrorForFailure(
 									context,
-									CacheRequest.REQUEST_FAILURE_PARSE,
+									CacheRequest.RequestFailureType.PARSE,
 									t,
 									null,
 									apiUrl,
@@ -90,24 +94,24 @@ public final class ImgurAPIV3 {
 	}
 
 	public static void getImageInfo(
-			final Context context,
-			final String imageId,
+			@NonNull final Context context,
+			@NonNull final String imageId,
 			@NonNull final Priority priority,
 			final boolean withAuth,
-			final GetImageInfoListener listener) {
+			@NonNull final GetImageInfoListener listener) {
 
-		final String apiUrl = "https://api.imgur.com/3/image/" + imageId;
+		final UriString apiUrl = new UriString("https://api.imgur.com/3/image/" + imageId);
 
 		CacheManager.getInstance(context).makeRequest(new CacheRequest(
-				General.uriFromString(apiUrl),
+				apiUrl,
 				RedditAccountManager.getAnon(),
 				null,
 				priority,
 				DownloadStrategyIfNotCached.INSTANCE,
 				Constants.FileType.IMAGE_INFO,
 				withAuth
-						? CacheRequest.DOWNLOAD_QUEUE_IMGUR_API
-						: CacheRequest.DOWNLOAD_QUEUE_IMMEDIATE,
+						? CacheRequest.DownloadQueueType.IMGUR_API
+						: CacheRequest.DownloadQueueType.IMMEDIATE,
 				context,
 				new CacheRequestJSONParser(context, new CacheRequestJSONParser.Listener() {
 					@Override
@@ -124,7 +128,7 @@ public final class ImgurAPIV3 {
 						} catch(final Throwable t) {
 							listener.onFailure(General.getGeneralErrorForFailure(
 									context,
-									CacheRequest.REQUEST_FAILURE_PARSE,
+									CacheRequest.RequestFailureType.PARSE,
 									t,
 									null,
 									apiUrl,

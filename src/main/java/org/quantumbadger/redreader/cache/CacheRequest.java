@@ -19,9 +19,10 @@ package org.quantumbadger.redreader.cache;
 
 import android.content.Context;
 import android.util.Log;
-import androidx.annotation.IntDef;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.activities.BugReportActivity;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategy;
@@ -30,62 +31,40 @@ import org.quantumbadger.redreader.common.GenericFactory;
 import org.quantumbadger.redreader.common.Optional;
 import org.quantumbadger.redreader.common.Priority;
 import org.quantumbadger.redreader.common.RRError;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.datastream.SeekableInputStream;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
 import org.quantumbadger.redreader.http.body.HTTPRequestBody;
 
 import java.io.IOException;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.net.URI;
 import java.util.UUID;
 
 public final class CacheRequest implements Comparable<CacheRequest> {
 
-	public static final int DOWNLOAD_QUEUE_REDDIT_API = 0;
-	public static final int DOWNLOAD_QUEUE_IMGUR_API = 1;
-	public static final int DOWNLOAD_QUEUE_IMMEDIATE = 2;
-	public static final int DOWNLOAD_QUEUE_IMAGE_PRECACHE = 3;
-	public static final int DOWNLOAD_QUEUE_REDGIFS_API_V2 = 4;
-
-	public static final int REQUEST_FAILURE_CONNECTION = 0;
-	public static final int REQUEST_FAILURE_REQUEST = 1;
-	public static final int REQUEST_FAILURE_STORAGE = 2;
-	public static final int REQUEST_FAILURE_CACHE_MISS = 3;
-	public static final int REQUEST_FAILURE_CANCELLED = 4;
-	public static final int REQUEST_FAILURE_MALFORMED_URL = 5;
-	public static final int REQUEST_FAILURE_PARSE = 6;
-	public static final int REQUEST_FAILURE_DISK_SPACE = 7;
-	public static final int REQUEST_FAILURE_REDDIT_REDIRECT = 8;
-	public static final int REQUEST_FAILURE_PARSE_IMGUR = 9;
-	public static final int REQUEST_FAILURE_UPLOAD_FAIL_IMGUR = 10;
-	public static final int REQUEST_FAILURE_CACHE_DIR_DOES_NOT_EXIST = 11;
-
-	@IntDef({
-			DOWNLOAD_QUEUE_REDDIT_API, DOWNLOAD_QUEUE_IMGUR_API, DOWNLOAD_QUEUE_IMMEDIATE,
-			DOWNLOAD_QUEUE_IMAGE_PRECACHE, DOWNLOAD_QUEUE_REDGIFS_API_V2})
-	@Retention(RetentionPolicy.SOURCE)
-	public @interface DownloadQueueType {
+	public enum DownloadQueueType {
+		REDDIT_API,
+		IMGUR_API,
+		IMMEDIATE,
+		IMAGE_PRECACHE,
+		REDGIFS_API_V2
 	}
 
-	@IntDef({
-			REQUEST_FAILURE_CONNECTION,
-			REQUEST_FAILURE_REQUEST,
-			REQUEST_FAILURE_STORAGE,
-			REQUEST_FAILURE_CACHE_MISS,
-			REQUEST_FAILURE_CANCELLED,
-			REQUEST_FAILURE_MALFORMED_URL,
-			REQUEST_FAILURE_PARSE,
-			REQUEST_FAILURE_DISK_SPACE,
-			REQUEST_FAILURE_REDDIT_REDIRECT,
-			REQUEST_FAILURE_PARSE_IMGUR,
-			REQUEST_FAILURE_UPLOAD_FAIL_IMGUR,
-			REQUEST_FAILURE_CACHE_DIR_DOES_NOT_EXIST})
-	@Retention(RetentionPolicy.SOURCE)
-	public @interface RequestFailureType {
+	public enum RequestFailureType {
+		CONNECTION,
+		REQUEST,
+		STORAGE,
+		CACHE_MISS,
+		CANCELLED,
+		MALFORMED_URL,
+		PARSE,
+		DISK_SPACE,
+		REDDIT_REDIRECT,
+		PARSE_IMGUR,
+		UPLOAD_FAIL_IMGUR,
+		CACHE_DIR_DOES_NOT_EXIST
 	}
 
-	public final URI url;
+	public final UriString url;
 	public final RedditAccount user;
 	public final UUID requestSession;
 
@@ -95,7 +74,7 @@ public final class CacheRequest implements Comparable<CacheRequest> {
 
 	public final int fileType;
 
-	public final @DownloadQueueType int queueType;
+	public final DownloadQueueType queueType;
 	@NonNull public final Optional<HTTPRequestBody> requestBody;
 
 	public final boolean cache;
@@ -128,16 +107,16 @@ public final class CacheRequest implements Comparable<CacheRequest> {
 	}
 
 	public CacheRequest(
-			final URI url,
-			final RedditAccount user,
-			final UUID requestSession,
+			@NonNull final UriString url,
+			@NonNull final RedditAccount user,
+			@Nullable final UUID requestSession,
 			@NonNull final Priority priority,
 			@NonNull final DownloadStrategy downloadStrategy,
 			final int fileType,
-			final @DownloadQueueType int queueType,
+			final DownloadQueueType queueType,
 			final boolean cache,
-			final Context context,
-			final CacheRequestCallbacks callbacks) {
+			@NonNull final Context context,
+			@NonNull final CacheRequestCallbacks callbacks) {
 
 		this(
 				url,
@@ -154,15 +133,15 @@ public final class CacheRequest implements Comparable<CacheRequest> {
 	}
 
 	public CacheRequest(
-			final URI url,
-			final RedditAccount user,
-			final UUID requestSession,
+			@NonNull final UriString url,
+			@NonNull final RedditAccount user,
+			@Nullable final UUID requestSession,
 			@NonNull final Priority priority,
 			@NonNull final DownloadStrategy downloadStrategy,
 			final int fileType,
-			final @DownloadQueueType int queueType,
-			final Context context,
-			final CacheRequestCallbacks callbacks) {
+			final DownloadQueueType queueType,
+			@NonNull final Context context,
+			@NonNull final CacheRequestCallbacks callbacks) {
 
 		this(
 				url,
@@ -178,16 +157,16 @@ public final class CacheRequest implements Comparable<CacheRequest> {
 	}
 
 	public CacheRequest(
-			final URI url,
-			final RedditAccount user,
-			final UUID requestSession,
+			@NonNull final UriString url,
+			@NonNull final RedditAccount user,
+			@Nullable final UUID requestSession,
 			@NonNull final Priority priority,
 			@NonNull final DownloadStrategy downloadStrategy,
 			final int fileType,
-			final @DownloadQueueType int queueType,
+			final DownloadQueueType queueType,
 			@Nullable final HTTPRequestBody requestBody,
-			final Context context,
-			final CacheRequestCallbacks callbacks) {
+			@NonNull final Context context,
+			@NonNull final CacheRequestCallbacks callbacks) {
 
 		this(
 				url,
@@ -205,17 +184,17 @@ public final class CacheRequest implements Comparable<CacheRequest> {
 
 	// TODO remove this huge constructor, make mutable
 	private CacheRequest(
-			final URI url,
-			final RedditAccount user,
-			final UUID requestSession,
+			@NonNull final UriString url,
+			@NonNull final RedditAccount user,
+			@Nullable final UUID requestSession,
 			@NonNull final Priority priority,
 			@NonNull final DownloadStrategy downloadStrategy,
 			final int fileType,
-			final @DownloadQueueType int queueType,
+			final DownloadQueueType queueType,
 			@Nullable final HTTPRequestBody requestBody,
 			final boolean cache,
-			final Context context,
-			final CacheRequestCallbacks callbacks) {
+			@NonNull final Context context,
+			@NonNull final CacheRequestCallbacks callbacks) {
 
 		this.context = context.getApplicationContext();
 		mCallbacks = callbacks;
@@ -243,10 +222,10 @@ public final class CacheRequest implements Comparable<CacheRequest> {
 		if(url == null) {
 			notifyFailure(General.getGeneralErrorForFailure(
 					this.context,
-					REQUEST_FAILURE_MALFORMED_URL,
+					RequestFailureType.MALFORMED_URL,
 					null,
 					null,
-					"null",
+					null,
 					Optional.empty()));
 			cancel();
 		}

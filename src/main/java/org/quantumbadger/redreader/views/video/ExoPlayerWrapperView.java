@@ -19,7 +19,6 @@ package org.quantumbadger.redreader.views.video;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -28,19 +27,23 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.annotation.StringRes;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.ui.DefaultTimeBar;
-import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.ui.TimeBar;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.Player;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
+import androidx.media3.ui.AspectRatioFrameLayout;
+import androidx.media3.ui.DefaultTimeBar;
+import androidx.media3.ui.PlayerView;
+import androidx.media3.ui.TimeBar;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.General;
@@ -49,6 +52,7 @@ import org.quantumbadger.redreader.common.PrefsUtility;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
+@OptIn(markerClass = UnstableApi.class)
 public class ExoPlayerWrapperView extends FrameLayout {
 
 	public interface Listener {
@@ -87,8 +91,9 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 		addView(videoPlayerView);
 
-		videoPlayerView.setPlayer(mVideoPlayer);
+		videoPlayerView.setUseController(false);
 		videoPlayerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);
+		videoPlayerView.setPlayer(mVideoPlayer);
 		videoPlayerView.requestFocus();
 
 		mVideoPlayer.setMediaSource(mediaSource);
@@ -97,7 +102,6 @@ public class ExoPlayerWrapperView extends FrameLayout {
 		mVideoPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
 
 		mVideoPlayer.setPlayWhenReady(true);
-		videoPlayerView.setUseController(false);
 
 		if(PrefsUtility.pref_behaviour_video_zoom_default()) {
 			videoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
@@ -112,7 +116,7 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 			final LinearLayout controlBar = new LinearLayout(context);
 			mControlView.addView(controlBar);
-			controlBar.setBackgroundColor(Color.argb(127, 127, 127, 127));
+			controlBar.setBackgroundColor(Color.argb(220, 40, 40, 40));
 			controlBar.setOrientation(LinearLayout.VERTICAL);
 
 			{
@@ -243,18 +247,18 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 			mTimeBarView.addListener(new TimeBar.OnScrubListener() {
 				@Override
-				public void onScrubStart(final TimeBar timeBar, final long position) {
+				public void onScrubStart(@NonNull final TimeBar timeBar, final long position) {
 
 				}
 
 				@Override
-				public void onScrubMove(final TimeBar timeBar, final long position) {
+				public void onScrubMove(@NonNull final TimeBar timeBar, final long position) {
 					mVideoPlayer.seekTo(position);
 				}
 
 				@Override
 				public void onScrubStop(
-						final TimeBar timeBar,
+						@NonNull final TimeBar timeBar,
 						final long position,
 						final boolean canceled) {
 					mVideoPlayer.seekTo(position);
@@ -286,10 +290,8 @@ public class ExoPlayerWrapperView extends FrameLayout {
 				((MarginLayoutParams)mTimeTextView.getLayoutParams())
 						.setMargins(marginSidesPx, 0, marginSidesPx, marginBottomPx);
 
-				if(Build.VERSION.SDK_INT >= 19) {
-					mTimeTextView.setImportantForAccessibility(
-							IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
-				}
+				mTimeTextView.setImportantForAccessibility(
+						IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
 			}
 
 			mControlView.setVisibility(GONE);

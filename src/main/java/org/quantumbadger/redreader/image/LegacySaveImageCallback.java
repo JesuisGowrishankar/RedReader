@@ -20,12 +20,14 @@ package org.quantumbadger.redreader.image;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.cache.CacheRequest;
 import org.quantumbadger.redreader.common.FileUtils;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.Optional;
+import org.quantumbadger.redreader.common.UriString;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,9 +35,9 @@ import java.io.InputStream;
 
 public class LegacySaveImageCallback implements BaseActivity.PermissionCallback {
 	private final BaseActivity activity;
-	private final String uri;
+	private final UriString uri;
 
-	public LegacySaveImageCallback(final BaseActivity activity, final String uri) {
+	public LegacySaveImageCallback(final BaseActivity activity, final UriString uri) {
 		this.activity = activity;
 		this.uri = uri;
 	}
@@ -48,7 +50,7 @@ public class LegacySaveImageCallback implements BaseActivity.PermissionCallback 
 				uri,
 				(info, cacheFile, mimetype) -> {
 
-					final String filename = General.filenameFromString(info.urlOriginal);
+					final String filename = General.filenameFromString(info.original.url.value);
 
 					File dst = new File(
 							Environment.getExternalStoragePublicDirectory(
@@ -76,7 +78,7 @@ public class LegacySaveImageCallback implements BaseActivity.PermissionCallback 
 								activity,
 								General.getGeneralErrorForFailure(
 										activity,
-										CacheRequest.REQUEST_FAILURE_STORAGE,
+										CacheRequest.RequestFailureType.STORAGE,
 										new RuntimeException("Could not copy file", e),
 										null,
 										uri,

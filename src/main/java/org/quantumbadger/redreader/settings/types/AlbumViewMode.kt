@@ -15,23 +15,16 @@
  * along with RedReader.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.quantumbadger.redreader.http.body.multipart;
+package org.quantumbadger.redreader.settings.types
 
-import androidx.annotation.NonNull;
+enum class AlbumViewMode(
+	override val stringValue: String
+): SerializableEnum<AlbumViewMode> {
+	Cards("cards"),
+	List("list"),
+	Grid("grid");
 
-public class PartFormData implements Part {
-
-	@NonNull public final String name;
-	@NonNull public final String value;
-
-	public PartFormData(@NonNull final String name, @NonNull final String value) {
-		this.name = name;
-		this.value = value;
+	companion object {
+		val settingSerializer = EnumSettingSerializer(entries)
 	}
-
-	@NonNull
-	public <E> E visit(@NonNull final Visitor<E> visitor) {
-		return visitor.visitPart(this);
-	}
-
 }

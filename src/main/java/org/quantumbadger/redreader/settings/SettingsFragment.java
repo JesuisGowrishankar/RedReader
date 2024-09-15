@@ -30,6 +30,7 @@ import android.text.Html;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
@@ -40,7 +41,9 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceScreen;
+
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import org.quantumbadger.redreader.BuildConfig;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.RedReader;
@@ -341,16 +344,6 @@ public final class SettingsFragment extends PreferenceFragmentCompat {
 					return true;
 				}
 
-				if(Build.VERSION.SDK_INT < 19) {
-
-					DialogUtils.showDialog(
-							activity,
-							R.string.backup_preferences_error_old_android_title,
-							R.string.backup_preferences_error_old_android_message);
-
-					return true;
-				}
-
 				final TimestampUTC utc = TimestampUTC.now();
 				final String filename
 						= utc.formatFilenameSafe()
@@ -403,16 +396,6 @@ public final class SettingsFragment extends PreferenceFragmentCompat {
 					return true;
 				}
 
-				if(Build.VERSION.SDK_INT < 19) {
-
-					DialogUtils.showDialog(
-							activity,
-							R.string.backup_preferences_error_old_android_title,
-							R.string.backup_preferences_error_old_android_message);
-
-					return true;
-				}
-
 				final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
 						.setType("*/*")
 						.addCategory(Intent.CATEGORY_OPENABLE);
@@ -448,21 +431,6 @@ public final class SettingsFragment extends PreferenceFragmentCompat {
 
 				return true;
 			});
-		}
-
-		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-
-			for(final int key : new int[] {
-					R.string.pref_appearance_navbar_color_key,
-					R.string.pref_behaviour_save_location_key}) {
-
-				final Preference pref = findPreference(getString(key));
-
-				if(pref != null) {
-					pref.setEnabled(false);
-					pref.setSummary(R.string.pref_not_supported_before_lollipop);
-				}
-			}
 		}
 
 		final Preference cacheLocationPref =

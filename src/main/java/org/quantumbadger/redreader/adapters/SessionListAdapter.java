@@ -23,20 +23,22 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.appcompat.app.AppCompatDialogFragment;
-import androidx.core.content.ContextCompat;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.recyclerview.widget.RecyclerView;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.activities.SessionChangeListener;
 import org.quantumbadger.redreader.cache.CacheEntry;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.common.BetterSSB;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.time.TimeDuration;
 import org.quantumbadger.redreader.common.time.TimeFormatHelper;
 import org.quantumbadger.redreader.viewholders.VH1Text;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -52,7 +54,7 @@ public class SessionListAdapter extends HeaderRecyclerAdapter<RecyclerView.ViewH
 
 	public SessionListAdapter(
 			final Context context,
-			final URI url,
+			final UriString url,
 			final UUID current,
 			final SessionChangeListener.SessionChangeType type,
 			final AppCompatDialogFragment fragment) {
@@ -70,7 +72,7 @@ public class SessionListAdapter extends HeaderRecyclerAdapter<RecyclerView.ViewH
 
 		final TypedArray attr
 				= context.obtainStyledAttributes(new int[] {R.attr.rrIconRefresh,});
-		rrIconRefresh = ContextCompat.getDrawable(context, attr.getResourceId(0, 0));
+		rrIconRefresh = AppCompatResources.getDrawable(context, attr.getResourceId(0, 0));
 		attr.recycle();
 	}
 

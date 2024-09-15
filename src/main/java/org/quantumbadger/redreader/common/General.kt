@@ -40,7 +40,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.quantumbadger.redreader.BuildConfig
 import org.quantumbadger.redreader.R
-import org.quantumbadger.redreader.cache.CacheRequest
 import org.quantumbadger.redreader.cache.CacheRequest.RequestFailureType
 import org.quantumbadger.redreader.common.AndroidCommon.runOnUiThread
 import org.quantumbadger.redreader.common.PrefsUtility.AppearanceTwopane
@@ -49,12 +48,10 @@ import org.quantumbadger.redreader.fragments.ErrorPropertiesDialog
 import org.quantumbadger.redreader.http.FailedRequestBody
 import org.quantumbadger.redreader.reddit.APIResponseHandler.APIFailureType
 import java.io.*
-import java.net.URI
 import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
-import java.util.regex.Pattern
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -214,37 +211,37 @@ object General {
     @JvmStatic
 	fun getGeneralErrorForFailure(
         context: Context,
-        @RequestFailureType type: Int,
+        type: RequestFailureType,
         t: Throwable?,
         status: Int?,
-        url: String?,
+        url: UriString?,
         response: Optional<FailedRequestBody>
     ): RRError {
         val title: Int
         val message: Int
         var reportable = true
         when (type) {
-            CacheRequest.REQUEST_FAILURE_CANCELLED -> {
+			RequestFailureType.CANCELLED -> {
                 title = R.string.error_cancelled_title
                 message = R.string.error_cancelled_message
             }
 
-            CacheRequest.REQUEST_FAILURE_PARSE -> {
+			RequestFailureType.PARSE -> {
                 title = R.string.error_parse_title
                 message = R.string.error_parse_message
             }
 
-            CacheRequest.REQUEST_FAILURE_CACHE_MISS -> {
+			RequestFailureType.CACHE_MISS -> {
                 title = R.string.error_postlist_cache_title
                 message = R.string.error_postlist_cache_message
             }
 
-            CacheRequest.REQUEST_FAILURE_STORAGE -> {
+			RequestFailureType.STORAGE -> {
                 title = R.string.error_unexpected_storage_title
                 message = R.string.error_unexpected_storage_message
             }
 
-            CacheRequest.REQUEST_FAILURE_CONNECTION ->
+			RequestFailureType.CONNECTION ->
                 // TODO check network and customise message
                 if (isTorError(t)) {
                     title = R.string.error_tor_connection_title
@@ -257,30 +254,30 @@ object General {
                     message = R.string.error_connection_message
                 }
 
-            CacheRequest.REQUEST_FAILURE_MALFORMED_URL -> {
+			RequestFailureType.MALFORMED_URL -> {
                 title = R.string.error_malformed_url_title
                 message = R.string.error_malformed_url_message
             }
 
-            CacheRequest.REQUEST_FAILURE_DISK_SPACE -> {
+			RequestFailureType.DISK_SPACE -> {
                 title = R.string.error_disk_space_title
                 message = R.string.error_disk_space_message
             }
 
-            CacheRequest.REQUEST_FAILURE_CACHE_DIR_DOES_NOT_EXIST -> {
+			RequestFailureType.CACHE_DIR_DOES_NOT_EXIST -> {
                 title = R.string.error_cache_dir_does_not_exist_title
                 message = R.string.error_cache_dir_does_not_exist_message
             }
 
-            CacheRequest.REQUEST_FAILURE_REQUEST -> if (status != null) {
+			RequestFailureType.REQUEST -> if (status != null) {
                 when (status) {
                     400, 401, 403, 404 -> {
-                        val uri = uriFromString(url)
+                        val uri = Uri.parse(url?.value)
                         var isImgurApiRequest = false
                         var isRedditRequest = false
                         if (uri != null && uri.host != null) {
                             if ("reddit.com".equals(uri.host, ignoreCase = true)
-                                || uri.host.endsWith(".reddit.com")
+                                || uri.host?.endsWith(".reddit.com") == true
                             ) {
                                 isRedditRequest = true
                             } else if (uri.host.equals(
@@ -354,32 +351,22 @@ object General {
                 message = R.string.error_unknown_api_message
             }
 
-            CacheRequest.REQUEST_FAILURE_REDDIT_REDIRECT -> {
+			RequestFailureType.REDDIT_REDIRECT -> {
                 title = R.string.error_403_title
                 message = R.string.error_403_message
             }
 
-            CacheRequest.REQUEST_FAILURE_PARSE_IMGUR -> {
+			RequestFailureType.PARSE_IMGUR -> {
                 title = R.string.error_parse_imgur_title
                 message = R.string.error_parse_imgur_message
             }
 
-            CacheRequest.REQUEST_FAILURE_UPLOAD_FAIL_IMGUR -> {
+			RequestFailureType.UPLOAD_FAIL_IMGUR -> {
                 title = R.string.error_upload_fail_imgur_title
                 message = R.string.error_upload_fail_imgur_message
             }
-
-            else -> {
-                if (isTorError(t)) {
-                    title = R.string.error_tor_connection_title
-                    message = R.string.error_tor_connection_message
-                } else {
-                    title = R.string.error_unknown_title
-                    message = R.string.error_unknown_message
-                }
-            }
-        }
-        return RRError(
+		}
+        return RRError.createLegacy(
             context.getString(title),
             context.getString(message),
             reportable,
@@ -455,7 +442,7 @@ object General {
                 message = R.string.error_unknown_api_message
             }
         }
-        return RRError(
+        return RRError.createLegacy(
             context.getString(title),
             context.getString(message),
             true,
@@ -499,14 +486,10 @@ object General {
         }
     }
 
-    private val urlPattern = Pattern.compile(
-        "^(https?)://([^/]+)/+([^?#]+)((?:\\?[^#]+)?)((?:#.+)?)$"
-    )
-
     @JvmStatic
-	fun filenameFromString(url: String?): String {
-        val uri = uriFromString(url)
-        var filename = uri!!.path.replace(File.separator, "")
+	fun filenameFromString(url: String): String {
+        val uri = Uri.parse(url)
+        var filename = uri.path?.replace(File.separator, "") ?: "file"
         val parts = filename.substring(1).split("\\.".toRegex(), limit = 2).toTypedArray()
         if (parts.size < 2) {
             filename += if ("v.redd.it" == uri.host) {
@@ -518,50 +501,7 @@ object General {
         return filename
     }
 
-    @JvmStatic
-	fun uriFromString(url: String?): URI? {
-
-		if (url == null) {
-			return null
-		}
-
-        return try {
-            URI(url)
-        } catch (t1: Throwable) {
-            try {
-                val urlMatcher = urlPattern.matcher(url)
-                if (urlMatcher.find()) {
-                    val scheme = urlMatcher.group(1)
-                    val authority = urlMatcher.group(2)
-                    val path =
-                        if (urlMatcher.group(3)?.isEmpty() == true) null else "/" + urlMatcher.group(3)
-                    val query = if (urlMatcher.group(4)?.isEmpty() == true) null else urlMatcher.group(4)
-                    val fragment = if (urlMatcher.group(5)?.isEmpty() == true) null else urlMatcher.group(5)
-                    try {
-                        URI(scheme, authority, path, query, fragment)
-                    } catch (t3: Throwable) {
-                        if (path != null && path.contains(" ")) {
-                            URI(
-                                scheme,
-                                authority,
-                                path.replace(" ", "%20"),
-                                query,
-                                fragment
-                            )
-                        } else {
-                            null
-                        }
-                    }
-                } else {
-                    null
-                }
-            } catch (t2: Throwable) {
-                null
-            }
-        }
-    }
-
-	fun toHex(bytes: ByteArray): String {
+	private fun toHex(bytes: ByteArray): String {
 		val result = StringBuilder(bytes.size * 2)
 		for (b in bytes) {
 			result.append(String.format(Locale.US, "%02X", b))
@@ -785,9 +725,9 @@ object General {
     }
 
     @JvmStatic
-	fun closeSafely(closeable: Closeable) {
+	fun closeSafely(closeable: Closeable?) {
         try {
-            closeable.close()
+            closeable?.close()
         } catch (e: IOException) {
             Log.e("closeSafely", "Failed to close resource", e)
         }
@@ -895,4 +835,16 @@ object General {
             Optional.empty()
         }
     }
+}
+
+fun <E> E.invokeIf(condition: Boolean, action: E.() -> E): E = if (condition) {
+	action()
+} else {
+	this
+}
+
+fun <V, E> E.invokeIfNotNull(value: V?, action: E.(V) -> E): E = if (value != null) {
+	action(value)
+} else {
+	this
 }

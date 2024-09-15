@@ -5,7 +5,8 @@ plugins {
 	alias(libs.plugins.kotlin.android)
 	alias(libs.plugins.kotlin.serialization)
 	alias(libs.plugins.kotlin.parcelize)
-    pmd
+	alias(libs.plugins.compose.compiler)
+	pmd
 	checkstyle
 
 	// If plugin is used in multiple subprojects then it needs to be imported with apply(false) in the root project,
@@ -16,8 +17,6 @@ plugins {
 }
 
 dependencies {
-	implementation(libs.androidx.multidex)
-
 	implementation(project(":redreader-common"))
 	implementation(project(":redreader-datamodel"))
 
@@ -46,19 +45,29 @@ dependencies {
 
 	implementation(libs.okhttp)
 	implementation(libs.netcipher.webkit)
-	implementation(libs.exoplayer.core)
-	implementation(libs.exoplayer.ui)
+	implementation(libs.media3.exoplayer)
+	implementation(libs.media3.ui)
 	implementation(libs.zstd) {
 		artifact {
 			type = "aar"
 		}
 	}
 
+	implementation(platform(libs.androidx.compose.bom))
+	implementation(libs.androidx.compose.material3)
+	implementation(libs.androidx.compose.runtime)
+	implementation(libs.androidx.compose.ui)
+	implementation(libs.androidx.compose.ui.graphics)
+	implementation(libs.androidx.compose.ui.tooling)
+	implementation(libs.androidx.compose.constraintlayout)
+
 	testImplementation(libs.junit)
 
+	androidTestImplementation(libs.androidx.test.core)
 	androidTestImplementation(libs.androidx.test.espresso.core)
 	androidTestImplementation(libs.androidx.test.espresso.contrib)
 	androidTestImplementation(libs.androidx.test.rules)
+	androidTestImplementation(libs.androidx.test.junit)
 }
 
 android {
@@ -70,10 +79,9 @@ android {
 		applicationId = "org.quantumbadger.redreader"
 		minSdk = libs.versions.sdk.min.get().toInt()
 		targetSdk = libs.versions.sdk.target.get().toInt()
-		versionCode = 112
-		versionName = "1.23.1-G"
+		versionCode = 114
+		versionName = "1.24.1-G"
 
-		multiDexEnabled = true
 		vectorDrawables.generatedDensities("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 	}
@@ -83,11 +91,15 @@ android {
 		additionalParameters.add("--no-version-vectors")
 	}
 
-	buildTypes.forEach {
-		it.isMinifyEnabled = true
-		it.isShrinkResources = false
-
-		it.proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+	buildTypes {
+		getByName("release") {
+			isMinifyEnabled = true
+			isShrinkResources = false
+			proguardFiles(
+				getDefaultProguardFile("proguard-android-optimize.txt"),
+				"proguard-rules.pro"
+			)
+		}
 	}
 
 	compileOptions {
@@ -97,6 +109,7 @@ android {
 			sourceCompatibility = it
 			targetCompatibility = it
 		}
+
 	}
 
 	lint {
@@ -120,10 +133,27 @@ android {
 
 	kotlinOptions {
 		jvmTarget = libs.versions.java.get()
+
+		val buildDir = project.layout.buildDirectory.get().asFile.absolutePath
+
+		if (project.findProperty("composeCompilerReports") == "true") {
+			freeCompilerArgs += listOf(
+				"-P",
+				"plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=$buildDir/compose_compiler"
+			)
+		}
+
+		if (project.findProperty("composeCompilerMetrics") == "true") {
+			freeCompilerArgs += listOf(
+				"-P",
+				"plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=$buildDir/compose_compiler"
+			)
+		}
 	}
 
 	buildFeatures {
 		buildConfig = true
+		compose = true
 	}
 }
 

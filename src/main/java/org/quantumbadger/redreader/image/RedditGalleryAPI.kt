@@ -25,10 +25,10 @@ import org.quantumbadger.redreader.cache.CacheRequestCallbacks
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyIfNotCached
 import org.quantumbadger.redreader.common.Constants
 import org.quantumbadger.redreader.common.General.getGeneralErrorForFailure
-import org.quantumbadger.redreader.common.General.uriFromString
 import org.quantumbadger.redreader.common.GenericFactory
 import org.quantumbadger.redreader.common.Priority
 import org.quantumbadger.redreader.common.RRError
+import org.quantumbadger.redreader.common.UriString
 import org.quantumbadger.redreader.common.datastream.SeekableInputStream
 import org.quantumbadger.redreader.common.time.TimestampUTC
 import org.quantumbadger.redreader.http.FailedRequestBody
@@ -38,7 +38,7 @@ import org.quantumbadger.redreader.reddit.kthings.RedditThing
 import org.quantumbadger.redreader.reddit.kthings.RedditThingResponse
 import org.quantumbadger.redreader.reddit.url.PostCommentListingURL
 import java.io.IOException
-import java.util.*
+import java.util.UUID
 
 class RedditGalleryAPI {
 
@@ -61,7 +61,7 @@ class RedditGalleryAPI {
         @JvmStatic
 		fun getAlbumInfo(
             context: Context,
-            albumUrl: String,
+            albumUrl: UriString,
             albumId: String,
             priority: Priority,
             listener: GetAlbumInfoListener
@@ -87,13 +87,13 @@ class RedditGalleryAPI {
 
             CacheManager.getInstance(context).makeRequest(
                 CacheRequest(
-                    uriFromString(apiUrl.toString()),
+					UriString.from(apiUrl),
                     RedditAccountManager.getInstance(context).defaultAccount,
                     null,
                     priority,
                     DownloadStrategyIfNotCached.INSTANCE,
                     Constants.FileType.IMAGE_INFO,
-                    CacheRequest.DOWNLOAD_QUEUE_REDDIT_API,
+					CacheRequest.DownloadQueueType.REDDIT_API,
                     context,
 					object : CacheRequestCallbacks {
 
@@ -133,7 +133,7 @@ class RedditGalleryAPI {
 							} catch(t: Throwable) {
 								onFailure(getGeneralErrorForFailure(
 									context,
-									CacheRequest.REQUEST_FAILURE_PARSE,
+									CacheRequest.RequestFailureType.PARSE,
 									t,
 									null,
 									albumUrl,
@@ -144,7 +144,6 @@ class RedditGalleryAPI {
 						override fun onFailure(error: RRError) {
 							listener.onFailure(error)
 						}
-
 					}
                 )
             )

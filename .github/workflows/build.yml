@@ -1,6 +1,7 @@
 name: CI
 
 on:
+    workflow_dispatch:
     push:
     pull_request:
     schedule:
@@ -18,12 +19,20 @@ jobs:
                     distribution: temurin
                     java-version: 17
 
-            -   uses: gradle/wrapper-validation-action@v1
+            -   name: Validate Gradle wrapper
+                uses: gradle/actions/wrapper-validation@v3
+
+            -   name: Set up Gradle
+                uses: gradle/actions/setup-gradle@v3
+                with:
+                    cache-read-only: ${{ github.event_name == 'pull_request' }}
 
             -   name: Install NDK
                 run: |
-                    SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
-                    echo "y" | $SDKMANAGER "ndk;23.1.7779620" --sdk_root=${ANDROID_SDK_ROOT}
+                    SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+                    NDK_VERSION="$(yq .versions.ndk gradle/libs.versions.toml)"
+                    echo "Installing NDK ${NDK_VERSION}"
+                    echo "y" | "$SDKMANAGER" "ndk;$NDK_VERSION" --sdk_root="${ANDROID_SDK_ROOT}"
 
             -   name: Run release build
                 run: ./gradlew assembleRelease

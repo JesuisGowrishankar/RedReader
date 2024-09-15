@@ -20,7 +20,9 @@ package org.quantumbadger.redreader.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.widget.LinearLayout;
+
 import androidx.annotation.NonNull;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.reddit.kthings.RedditComment;

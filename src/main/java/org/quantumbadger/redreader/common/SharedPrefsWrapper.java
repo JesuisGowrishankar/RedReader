@@ -20,6 +20,7 @@ package org.quantumbadger.redreader.common;
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -47,6 +48,14 @@ public class SharedPrefsWrapper {
 				@Nullable final String value) {
 
 			mEditor.putString(key, value);
+			return this;
+		}
+
+		public Editor putFloat(
+				@NonNull final String key,
+				@Nullable final Float value) {
+
+			mEditor.putString(key, value == null ? null : value.toString());
 			return this;
 		}
 
@@ -164,6 +173,9 @@ public class SharedPrefsWrapper {
 
 		try(Locker ignored = new Locker(mRestoreLock.readLock())) {
 			return mPrefs.getInt(key, defValue);
+		} catch(final Exception e) {
+			Log.e(TAG, "Failed to get pref", e);
+			return defValue;
 		}
 	}
 
@@ -173,6 +185,9 @@ public class SharedPrefsWrapper {
 
 		try(Locker ignored = new Locker(mRestoreLock.readLock())) {
 			return mPrefs.getLong(key, defValue);
+		} catch(final Exception e) {
+			Log.e(TAG, "Failed to get pref", e);
+			return defValue;
 		}
 	}
 

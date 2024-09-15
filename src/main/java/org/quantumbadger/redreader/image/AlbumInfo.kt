@@ -17,126 +17,139 @@
 
 package org.quantumbadger.redreader.image
 
+import androidx.compose.runtime.Immutable
 import org.apache.commons.text.StringEscapeUtils
+import org.quantumbadger.redreader.common.UriString
 import org.quantumbadger.redreader.jsonwrap.JsonObject
 import org.quantumbadger.redreader.reddit.kthings.ImageMetadata
 import org.quantumbadger.redreader.reddit.kthings.MaybeParseError
 import org.quantumbadger.redreader.reddit.kthings.RedditPost
 import kotlin.math.min
 
+@Immutable
 class AlbumInfo(
-	@JvmField val url: String,
+	@JvmField val url: UriString,
 	@JvmField val title: String?,
 	val description: String?,
 	images: List<ImageInfo>
 ) {
-    @JvmField
+	@JvmField
 	val images = ArrayList(images)
 
-    companion object {
-        @JvmStatic
+	companion object {
+		@JvmStatic
 		fun parseImgur(
-			url: String,
+			url: UriString,
 			obj: JsonObject
-        ): AlbumInfo {
-            var title = obj.getString("title")
-            var description = obj.getString("description")
+		): AlbumInfo {
+			var title = obj.getString("title")
+			var description = obj.getString("description")
 
-            if (title != null) {
-                title = StringEscapeUtils.unescapeHtml4(title)
-            }
+			if (title != null) {
+				title = StringEscapeUtils.unescapeHtml4(title)
+			}
 
-            if (description != null) {
-                description = StringEscapeUtils.unescapeHtml4(description)
-            }
+			if (description != null) {
+				description = StringEscapeUtils.unescapeHtml4(description)
+			}
 
-            val imagesJson = obj.getArray("images")
-            val images = ArrayList<ImageInfo>()
+			val imagesJson = obj.getArray("images")
+			val images = ArrayList<ImageInfo>()
 
-            for (imageJson in imagesJson!!) {
-                images.add(ImageInfo.parseImgur(imageJson.asObject()))
-            }
+			for (imageJson in imagesJson!!) {
+				images.add(ImageInfo.parseImgur(imageJson.asObject()))
+			}
 
-            return AlbumInfo(url, title, description, images)
-        }
+			return AlbumInfo(url, title, description, images)
+		}
 
-        @JvmStatic
+		@JvmStatic
 		fun parseImgurV3(
-			url: String,
+			url: UriString,
 			obj: JsonObject
-        ): AlbumInfo {
-            var title = obj.getString("title")
-            var description = obj.getString("description")
+		): AlbumInfo {
+			var title = obj.getString("title")
+			var description = obj.getString("description")
 
-            if (title != null) {
-                title = StringEscapeUtils.unescapeHtml4(title)
-            }
+			if (title != null) {
+				title = StringEscapeUtils.unescapeHtml4(title)
+			}
 
-            if (description != null) {
-                description = StringEscapeUtils.unescapeHtml4(description)
-            }
+			if (description != null) {
+				description = StringEscapeUtils.unescapeHtml4(description)
+			}
 
-            val imagesJson = obj.getArray("images")
-            val images = ArrayList<ImageInfo>()
+			val imagesJson = obj.getArray("images")
+			val images = ArrayList<ImageInfo>()
 
-            for (imageJson in imagesJson!!) {
-                images.add(ImageInfo.parseImgurV3(imageJson.asObject()))
-            }
+			for (imageJson in imagesJson!!) {
+				images.add(ImageInfo.parseImgurV3(imageJson.asObject()))
+			}
 
-            return AlbumInfo(url, title, description, images)
-        }
+			return AlbumInfo(url, title, description, images)
+		}
 
-        private fun stringToMediaType(mediaTypeString: String?): ImageInfo.MediaType {
-            return if (mediaTypeString == null) {
-                ImageInfo.MediaType.IMAGE
-            } else {
-                when (mediaTypeString) {
-                    "AnimatedImage" -> ImageInfo.MediaType.GIF
+		private fun stringToMediaType(mediaTypeString: String?): ImageInfo.MediaType {
+			return if (mediaTypeString == null) {
+				ImageInfo.MediaType.IMAGE
+			} else {
+				when (mediaTypeString) {
+					"AnimatedImage" -> ImageInfo.MediaType.GIF
 					// This string doesn't seem to exist yet, but it might do in future
-                    "Video" -> ImageInfo.MediaType.VIDEO
-                    "Image" -> ImageInfo.MediaType.IMAGE
-                    else -> ImageInfo.MediaType.IMAGE
-                }
-            }
-        }
+					"Video" -> ImageInfo.MediaType.VIDEO
+					"Image" -> ImageInfo.MediaType.IMAGE
+					else -> ImageInfo.MediaType.IMAGE
+				}
+			}
+		}
 
-        private fun getThumbnail(images: List<ImageMetadata>): String? {
-            val minThumbSize = 200
+		private fun getPreview(
+			minSizePx: Int,
+			images: List<ImageMetadata>
+		): ImageUrlInfo? {
 
-            var bestSizeMinAxis: Long? = null
-            var bestUrl: String? = null
+			var bestSizeMinAxis: Long? = null
+			var bestUrl: String? = null
+			var bestSize: ImageSize? = null
 
-            for (image in images) {
+			for (image in images) {
 
 				if (image.u == null) {
 					continue
 				}
 
-                val x = image.x
-                val y = image.y
+				val x = image.x
+				val y = image.y
 
-                val minAxis = min(x, y)
+				val minAxis = min(x, y)
 
-                if (bestSizeMinAxis == null || (bestSizeMinAxis < minThumbSize && minAxis > bestSizeMinAxis)
-                    || (minAxis >= minThumbSize && minAxis < bestSizeMinAxis)
-                ) {
-                    bestSizeMinAxis = minAxis
-                    bestUrl = image.u.decoded
-                }
-            }
+				if (bestSizeMinAxis == null || (bestSizeMinAxis < minSizePx && minAxis > bestSizeMinAxis)
+					|| (minAxis >= minSizePx && minAxis < bestSizeMinAxis)
+				) {
+					bestSizeMinAxis = minAxis
+					bestUrl = image.u.decoded
+					bestSize = ImageSize.from(image.x, image.y)
+				}
+			}
 
-            return StringEscapeUtils.unescapeHtml4(bestUrl)
-        }
+			return bestUrl?.let {
+				ImageUrlInfo(
+					UriString(bestUrl),
+					size = bestSize
+				)
+			}
+		}
 
-        fun parseRedditGallery(post: RedditPost): AlbumInfo? {
+		fun parseRedditGallery(post: RedditPost): AlbumInfo? {
 
-            val galleryItems = post.gallery_data?.items ?: return null
+			val galleryItems = post.gallery_data?.items ?: return null
 
-            val images = galleryItems.mapNotNull { (it as? MaybeParseError.Ok)?.value }
+			val images = galleryItems.mapNotNull { (it as? MaybeParseError.Ok)?.value }
 				.mapNotNull { item ->
 
-					val mediaMetadataEntry = (post.media_metadata?.get(item.media_id) as? MaybeParseError.Ok)?.value ?:
-						return@mapNotNull null
+					val mediaMetadataEntry =
+						(post.media_metadata?.get(item.media_id) as? MaybeParseError.Ok)?.value
+							?: return@mapNotNull null
 
 					val standardImage = mediaMetadataEntry.s
 
@@ -144,28 +157,44 @@ class AlbumInfo(
 
 					val urlEscaped = standardImage.u ?: standardImage.mp4 ?: standardImage.gif
 
+					val original = urlEscaped?.let {
+						ImageUrlInfo(
+							url = UriString(urlEscaped.decoded),
+							size = ImageSize.from(standardImage.x, standardImage.y)
+						)
+					}
+
+					if (original == null) {
+						throw RuntimeException("url missing from response")
+					}
+
+					var bigSquare: ImageUrlInfo? = null
+					var preview: ImageUrlInfo? = null
+
+					mediaMetadataEntry.p?.let { p ->
+						val images = p + listOf(standardImage)
+
+						bigSquare = getPreview(minSizePx = 300, images = images)
+						preview = getPreview(minSizePx = 1400, images = images)
+					}
+
 					ImageInfo(
-						urlEscaped?.decoded,
-						mediaMetadataEntry.p?.let { p -> getThumbnail(p) },
-						item.caption?.decoded,
-						null,
-						item.outbound_url?.decoded,
-						mediaMetadataEntry.m,
-						mediaType != ImageInfo.MediaType.IMAGE,
-						standardImage.x,
-						standardImage.y,
-						null,
-						mediaType,
-						ImageInfo.HasAudio.NO_AUDIO,
-						null,
-						null,
-						null
+						original = original,
+						preview = preview,
+						bigSquare = bigSquare,
+						title = item.caption?.decoded,
+						outboundUrl = UriString.fromNullable(
+							item.outbound_url?.decoded?.trim()?.takeUnless { it.isEmpty() }),
+						type = mediaMetadataEntry.m,
+						isAnimated = mediaType != ImageInfo.MediaType.IMAGE,
+						mediaType = mediaType,
+						hasAudio = ImageInfo.HasAudio.MAYBE_AUDIO,
 					)
 				}.toList()
 
-            val title = post.title?.decoded
+			val title = post.title?.decoded
 
-            return AlbumInfo(post.findUrl()!!, title, null, images)
-        }
-    }
+			return AlbumInfo(post.findUrl()!!, title, null, images)
+		}
+	}
 }

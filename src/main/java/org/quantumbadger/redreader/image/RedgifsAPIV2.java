@@ -20,7 +20,9 @@ package org.quantumbadger.redreader.image;
 import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
+
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
@@ -34,11 +36,12 @@ import org.quantumbadger.redreader.common.Priority;
 import org.quantumbadger.redreader.common.RRError;
 import org.quantumbadger.redreader.common.StringUtils;
 import org.quantumbadger.redreader.common.TimestampBound;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.time.TimeDuration;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
 import org.quantumbadger.redreader.http.FailedRequestBody;
 import org.quantumbadger.redreader.http.PostField;
-import org.quantumbadger.redreader.http.body.HTTPRequestBodyPostFields;
+import org.quantumbadger.redreader.http.body.HTTPRequestBody;
 import org.quantumbadger.redreader.jsonwrap.JsonValue;
 
 import java.util.UUID;
@@ -79,11 +82,11 @@ public final class RedgifsAPIV2 {
 			@NonNull final Priority priority,
 			final GetImageInfoListener listener) {
 
-		final String apiUrl = "https://api.redgifs.com/v2/gifs/"
-				+ StringUtils.asciiLowercase(imageId);
+		final UriString apiUrl = new UriString("https://api.redgifs.com/v2/gifs/"
+				+ StringUtils.asciiLowercase(imageId));
 
 		CacheManager.getInstance(context).makeRequest(new CacheRequest(
-				General.uriFromString(apiUrl),
+				apiUrl,
 				RedditAccountManager.getAnon(),
 				null,
 				priority,
@@ -91,7 +94,7 @@ public final class RedgifsAPIV2 {
 				new DownloadStrategyIfTimestampOutsideBounds(
 						TimestampBound.notOlderThan(TimeDuration.minutes(10))),
 				Constants.FileType.IMAGE_INFO,
-				CacheRequest.DOWNLOAD_QUEUE_REDGIFS_API_V2,
+				CacheRequest.DownloadQueueType.REDGIFS_API_V2,
 				context,
 				new CacheRequestJSONParser(context, new CacheRequestJSONParser.Listener() {
 					@Override
@@ -111,7 +114,7 @@ public final class RedgifsAPIV2 {
 						} catch(final Throwable t) {
 							listener.onFailure(General.getGeneralErrorForFailure(
 									context,
-									CacheRequest.REQUEST_FAILURE_PARSE,
+									CacheRequest.RequestFailureType.PARSE,
 									t,
 									null,
 									apiUrl,
@@ -141,17 +144,17 @@ public final class RedgifsAPIV2 {
 
 		Log.i(TAG, "Retrieving new token");
 
-		final String apiUrl = "https://api.redgifs.com/v2/oauth/client";
+		final UriString apiUrl = new UriString("https://api.redgifs.com/v2/oauth/client");
 
 		CacheManager.getInstance(context).makeRequest(new CacheRequest(
-				General.uriFromString(apiUrl),
+				apiUrl,
 				RedditAccountManager.getAnon(),
 				null,
 				priority,
 				DownloadStrategyAlways.INSTANCE,
 				Constants.FileType.IMAGE_INFO,
-				CacheRequest.DOWNLOAD_QUEUE_IMMEDIATE,
-				new HTTPRequestBodyPostFields(
+				CacheRequest.DownloadQueueType.IMMEDIATE,
+				new HTTPRequestBody.PostFields(
 						new PostField("grant_type", "client_credentials"),
 						new PostField(
 								Constants.OA_CI,
@@ -176,7 +179,7 @@ public final class RedgifsAPIV2 {
 							Log.i(TAG, "Failed to get RedGifs v2 token: result not present");
 							listener.onFailure(General.getGeneralErrorForFailure(
 									context,
-									CacheRequest.REQUEST_FAILURE_REQUEST,
+									CacheRequest.RequestFailureType.REQUEST,
 									null,
 									null,
 									apiUrl,

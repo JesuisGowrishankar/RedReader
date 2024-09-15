@@ -15,17 +15,9 @@
  * along with RedReader.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.quantumbadger.redreader.http.body;
+package org.quantumbadger.redreader.http.body.multipart
 
-import androidx.annotation.NonNull;
-
-public interface HTTPRequestBody {
-
-	interface Visitor<E> {
-
-		E visitRequestBody(@NonNull HTTPRequestBodyPostFields body);
-		E visitRequestBody(@NonNull HTTPRequestBodyMultipart body);
-	}
-
-	@NonNull <E> E visit(@NonNull Visitor<E> visitor);
+sealed interface Part {
+	data class FormData(val name: String, val value: String) : Part
+	class FormDataBinary(val name: String, val value: ByteArray) : Part
 }

@@ -25,10 +25,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.WindowManager;
+
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
@@ -43,6 +46,7 @@ import org.quantumbadger.redreader.reddit.PostSort;
 import org.quantumbadger.redreader.reddit.UserCommentSort;
 import org.quantumbadger.redreader.reddit.api.SubredditSubscriptionState;
 import org.quantumbadger.redreader.settings.SettingsActivity;
+import org.quantumbadger.redreader.settings.types.AppearanceTheme;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,7 +99,7 @@ public final class OptionsMenuUtility {
 		UNBLOCK
 	}
 
-	public static <E extends BaseActivity & OptionsMenuListener> void prepare(
+	public static <E extends ViewsBaseActivity & OptionsMenuListener> void prepare(
 			final E activity,
 			final Menu menu,
 			final boolean subredditsVisible,
@@ -540,7 +544,7 @@ public final class OptionsMenuUtility {
 	}
 
 	private static void addSubscriptionItem(
-			final BaseActivity activity, final Menu menu, final int showAsAction,
+			final ViewsBaseActivity activity, final Menu menu, final int showAsAction,
 			final SubredditSubscriptionState subredditSubscriptionState) {
 
 		if(subredditSubscriptionState == null) {
@@ -567,14 +571,14 @@ public final class OptionsMenuUtility {
 	}
 
 	private static void add(
-			final BaseActivity activity,
+			final ViewsBaseActivity activity,
 			final Menu menu,
 			final Option option) {
 		add(activity, menu, option, MenuItem.SHOW_AS_ACTION_NEVER, true);
 	}
 
 	private static void add(
-			final BaseActivity activity,
+			final ViewsBaseActivity activity,
 			final Menu menu,
 			final Option option,
 			int showAsAction,
@@ -664,7 +668,7 @@ public final class OptionsMenuUtility {
 
 							final SharedPrefsWrapper prefs
 									= General.getSharedPrefs(activity);
-							final PrefsUtility.AppearanceTheme currentTheme
+							final AppearanceTheme currentTheme
 									= PrefsUtility.appearance_theme();
 
 							final String[] themeNames = activity.getResources()
@@ -675,7 +679,7 @@ public final class OptionsMenuUtility {
 
 							int selectedPos = -1;
 							for(int i = 0; i < themeValues.length; i++) {
-								if(PrefsUtility.AppearanceTheme.valueOf(
+								if(AppearanceTheme.valueOf(
 										StringUtils.asciiUppercase(themeValues[i]))
 										.equals(currentTheme)) {
 									selectedPos = i;
@@ -1318,7 +1322,7 @@ public final class OptionsMenuUtility {
 	}
 
 	private static void addAccounts(
-			final BaseActivity activity,
+			final ViewsBaseActivity activity,
 			final Menu menu,
 			final int showAsAction) {
 

@@ -19,9 +19,11 @@ package org.quantumbadger.redreader.reddit;
 
 import android.content.Context;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
+
 import org.apache.commons.text.StringEscapeUtils;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
@@ -38,6 +40,7 @@ import org.quantumbadger.redreader.common.GenericFactory;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.Priority;
 import org.quantumbadger.redreader.common.RRError;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.datastream.SeekableInputStream;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
 import org.quantumbadger.redreader.fragments.CommentListingFragment;
@@ -60,7 +63,6 @@ import org.quantumbadger.redreader.reddit.prepared.RedditRenderableComment;
 import org.quantumbadger.redreader.reddit.url.RedditURLParser;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
@@ -234,7 +236,7 @@ public class CommentListingRequest {
 	@NonNull
 	private CacheRequest createCommentListingCacheRequest() {
 
-		final URI url = General.uriFromString(mUrl.generateJsonUri().toString());
+		final UriString url = UriString.from(mUrl.generateJsonUri());
 
 		return new CacheRequest(
 				url,
@@ -243,7 +245,7 @@ public class CommentListingRequest {
 				new Priority(Constants.Priority.API_COMMENT_LIST),
 				mDownloadStrategy,
 				Constants.FileType.COMMENT_LIST,
-				CacheRequest.DOWNLOAD_QUEUE_REDDIT_API,
+				CacheRequest.DownloadQueueType.REDDIT_API,
 				mContext,
 				new CacheRequestCallbacks() {
 					@Override
@@ -278,10 +280,10 @@ public class CommentListingRequest {
 							} catch(final Exception e) {
 								onFailure(General.getGeneralErrorForFailure(
 										mContext,
-										CacheRequest.REQUEST_FAILURE_PARSE,
+										CacheRequest.RequestFailureType.PARSE,
 										e,
 										null,
-										url.toString(),
+										url,
 										FailedRequestBody.from(streamFactory)));
 							}
 						}, "Comment parsing", 1_000_000).start();

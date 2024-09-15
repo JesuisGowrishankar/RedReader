@@ -19,8 +19,10 @@ package org.quantumbadger.redreader.reddit.prepared.bodytext;
 
 import android.text.SpannableStringBuilder;
 import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.PrefsUtility;

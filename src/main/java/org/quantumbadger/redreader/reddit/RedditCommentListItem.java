@@ -20,7 +20,9 @@ package org.quantumbadger.redreader.reddit;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.recyclerview.widget.RecyclerView;
+
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.adapters.GroupedRecyclerViewAdapter;

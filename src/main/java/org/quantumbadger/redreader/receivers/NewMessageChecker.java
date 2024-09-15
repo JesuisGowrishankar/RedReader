@@ -27,9 +27,11 @@ import android.database.sqlite.SQLiteDatabaseCorruptException;
 import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
@@ -45,6 +47,7 @@ import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.Priority;
 import org.quantumbadger.redreader.common.RRError;
 import org.quantumbadger.redreader.common.SharedPrefsWrapper;
+import org.quantumbadger.redreader.common.UriString;
 import org.quantumbadger.redreader.common.datastream.SeekableInputStream;
 import org.quantumbadger.redreader.common.time.TimestampUTC;
 import org.quantumbadger.redreader.http.FailedRequestBody;
@@ -58,7 +61,6 @@ import org.quantumbadger.redreader.reddit.kthings.RedditThing;
 import org.quantumbadger.redreader.reddit.kthings.UrlEncodedString;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -104,7 +106,7 @@ public class NewMessageChecker extends BroadcastReceiver {
 
 		final CacheManager cm = CacheManager.getInstance(context);
 
-		final URI url = Constants.Reddit.getUri("/message/unread.json?limit=2");
+		final UriString url = Constants.Reddit.getUri("/message/unread.json?limit=2");
 
 		final CacheRequest request = new CacheRequest(
 				url,
@@ -113,7 +115,7 @@ public class NewMessageChecker extends BroadcastReceiver {
 				new Priority(Constants.Priority.API_INBOX_LIST),
 				DownloadStrategyAlways.INSTANCE,
 				Constants.FileType.INBOX_LIST,
-				CacheRequest.DOWNLOAD_QUEUE_REDDIT_API,
+				CacheRequest.DownloadQueueType.REDDIT_API,
 				false,
 				context,
 				new CacheRequestCallbacks() {
@@ -238,10 +240,10 @@ public class NewMessageChecker extends BroadcastReceiver {
 						} catch(final Exception e) {
 							onFailure(General.getGeneralErrorForFailure(
 									context,
-									CacheRequest.REQUEST_FAILURE_PARSE,
+									CacheRequest.RequestFailureType.PARSE,
 									e,
 									null,
-									url.toString(),
+									url,
 									FailedRequestBody.from(streamFactory)));
 						}
 					}
@@ -298,11 +300,8 @@ public class NewMessageChecker extends BroadcastReceiver {
 				.setContentTitle(title)
 				.setContentText(text)
 				.setAutoCancel(true)
-				.setChannelId(NOTIFICATION_CHANNEL_ID);
-
-		if(Build.VERSION.SDK_INT >= 21) {
-			notification.setColor(Color.rgb(0xd3, 0x2f, 0x2f));
-		}
+				.setChannelId(NOTIFICATION_CHANNEL_ID)
+				.setColor(Color.rgb(0xd3, 0x2f, 0x2f));
 
 		final Intent intent = new Intent(context, InboxListingActivity.class);
 

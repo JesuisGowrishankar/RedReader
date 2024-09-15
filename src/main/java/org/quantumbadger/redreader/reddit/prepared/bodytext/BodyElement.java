@@ -18,8 +18,10 @@
 package org.quantumbadger.redreader.reddit.prepared.bodytext;
 
 import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import org.quantumbadger.redreader.activities.BaseActivity;
 
 public abstract class BodyElement {

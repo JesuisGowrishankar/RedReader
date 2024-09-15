@@ -24,17 +24,17 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.StatFs;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.activities.BaseActivity;
@@ -59,7 +59,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.UUID;
 
 public class FileUtils {
@@ -164,7 +163,7 @@ public class FileUtils {
 
 		final String splitType;
 
-		if(mimetype.contains(";")) {
+		if (mimetype.contains(";")) {
 			splitType = mimetype.split(";")[0];
 		} else {
 			splitType = mimetype;
@@ -176,11 +175,11 @@ public class FileUtils {
 
 	public static void moveFile(final File src, final File dst) throws IOException {
 
-		if(!src.renameTo(dst)) {
+		if (!src.renameTo(dst)) {
 
 			copyFile(src, dst);
 
-			if(!src.delete()) {
+			if (!src.delete()) {
 				src.deleteOnExit();
 			}
 		}
@@ -188,13 +187,13 @@ public class FileUtils {
 
 	public static void copyFile(final File src, final File dst) throws IOException {
 
-		try(FileInputStream fis = new FileInputStream(src)) {
+		try (FileInputStream fis = new FileInputStream(src)) {
 			copyFile(fis, dst);
 		}
 	}
 
 	public static void copyFile(final InputStream fis, final File dst) throws IOException {
-		try(FileOutputStream fos = new FileOutputStream(dst)) {
+		try (FileOutputStream fos = new FileOutputStream(dst)) {
 			General.copyStream(fis, fos);
 			fos.flush();
 		}
@@ -206,26 +205,18 @@ public class FileUtils {
 	}
 
 	/// Get the number of free bytes that are available on the external storage.
-	@SuppressWarnings("deprecation")
 	public static long getFreeSpaceAvailable(final String path) {
 		final StatFs stat = new StatFs(path);
-		final long availableBlocks;
-		final long blockSize;
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-			availableBlocks = stat.getAvailableBlocksLong();
-			blockSize = stat.getBlockSizeLong();
-		} else {
-			availableBlocks = stat.getAvailableBlocks();
-			blockSize = stat.getBlockSize();
-		}
+		final long availableBlocks = stat.getAvailableBlocksLong();
+		final long blockSize = stat.getBlockSizeLong();
 		return availableBlocks * blockSize;
 	}
 
 	public static void shareImageAtUri(
 			@NonNull final BaseActivity activity,
-			@Nullable final String uri) {
+			@Nullable final UriString uri) {
 
-		if(uri == null) {
+		if (uri == null) {
 			return;
 		}
 
@@ -234,7 +225,7 @@ public class FileUtils {
 			final Uri externalUri = CacheContentProvider.getUriForFile(
 					cacheFile.getId(),
 					mimetype,
-					getExtensionFromPath(info.urlOriginal).orElse("jpg"));
+					getExtensionFromPath(info.original.url.value).orElse("jpg"));
 
 			Log.i(TAG, "Sharing image with external uri: " + externalUri);
 
@@ -247,30 +238,7 @@ public class FileUtils {
 			// Workaround for third party share apps
 			shareIntent.setClipData(ClipData.newRawUri(null, externalUri));
 
-			if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-
-				// Due to bugs in the API before Android Lollipop, we have to
-				// grant permission for every single app on the system to read
-				// this file!
-
-				for(final ResolveInfo resolveInfo
-						: activity.getPackageManager().queryIntentActivities(
-								shareIntent,
-								PackageManager.MATCH_DEFAULT_ONLY)) {
-
-					Log.i(TAG, "Legacy OS: granting permission to "
-							+ resolveInfo.activityInfo.packageName
-							+ " to read "
-							+ externalUri);
-
-					activity.grantUriPermission(
-							resolveInfo.activityInfo.packageName,
-							externalUri,
-							Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-				}
-			}
-
-			if(PrefsUtility.pref_behaviour_sharing_dialog()) {
+			if (PrefsUtility.pref_behaviour_sharing_dialog()) {
 				ShareOrderDialog.newInstance(shareIntent)
 						.show(activity.getSupportFragmentManager(), null);
 
@@ -288,7 +256,8 @@ public class FileUtils {
 
 	private static class CacheFileDataSource implements FileDataSource {
 
-		@NonNull private final CacheManager.ReadableCacheFile mCacheFile;
+		@NonNull
+		private final CacheManager.ReadableCacheFile mCacheFile;
 
 		private CacheFileDataSource(
 				@NonNull final CacheManager.ReadableCacheFile cacheFile) {
@@ -299,7 +268,7 @@ public class FileUtils {
 		@Override
 		public void writeTo(@NonNull final OutputStream outputStream) throws IOException {
 
-			try(InputStream inputStream = mCacheFile.getInputStream()) {
+			try (InputStream inputStream = mCacheFile.getInputStream()) {
 				General.copyStream(inputStream, outputStream);
 				outputStream.flush();
 			}
@@ -323,7 +292,7 @@ public class FileUtils {
 		fileMetadata.put(MediaStore.Downloads.DISPLAY_NAME, name);
 		fileMetadata.put(MediaStore.Downloads.SIZE, fileSize);
 
-		if(mimetype != null) {
+		if (mimetype != null) {
 			fileMetadata.put(MediaStore.Downloads.MIME_TYPE, mimetype);
 		}
 
@@ -337,16 +306,16 @@ public class FileUtils {
 
 		new Thread(() -> {
 
-			try(OutputStream os = resolver.openOutputStream(fileUri)) {
+			try (OutputStream os = resolver.openOutputStream(fileUri)) {
 				source.writeTo(os);
 				os.flush();
 
-			} catch(final IOException e) {
+			} catch (final IOException e) {
 
 				showUnexpectedStorageErrorDialog(
 						activity,
 						e,
-						fileUri.toString());
+						new UriString(fileUri.toString()));
 
 				resolver.delete(fileUri, null, null);
 
@@ -361,7 +330,6 @@ public class FileUtils {
 		}).start();
 	}
 
-	@RequiresApi(19)
 	private static void createSAFDocumentWithIntent(
 			@NonNull final BaseActivity activity,
 			@NonNull final String filename,
@@ -379,30 +347,30 @@ public class FileUtils {
 					intent,
 					(resultCode, data) -> {
 
-						if(data == null || data.getData() == null) {
+						if (data == null || data.getData() == null) {
 							return;
 						}
 
 						new Thread(() -> {
 
-							try(OutputStream outputStream = activity.getContentResolver()
+							try (OutputStream outputStream = activity.getContentResolver()
 									.openOutputStream(data.getData())) {
 
 								source.writeTo(outputStream);
 
 								onSuccess.run();
 
-							} catch(final IOException e) {
+							} catch (final IOException e) {
 								showUnexpectedStorageErrorDialog(
 										activity,
 										e,
-										data.getData().toString());
+										new UriString(data.getData().toString()));
 							}
 
 						}).start();
 					});
 
-		} catch(final ActivityNotFoundException e) {
+		} catch (final ActivityNotFoundException e) {
 			DialogUtils.showDialog(
 					activity,
 					R.string.error_no_file_manager_title,
@@ -412,94 +380,79 @@ public class FileUtils {
 
 	public static void saveImageAtUri(
 			@NonNull final BaseActivity activity,
-			@Nullable final String uri) {
+			@Nullable final UriString uri) {
 
-		if(uri == null) {
+		if (uri == null) {
 			return;
 		}
 
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+		final PrefsUtility.SaveLocation saveLocation
+				= PrefsUtility.pref_behaviour_save_location();
 
-			final PrefsUtility.SaveLocation saveLocation
-					= PrefsUtility.pref_behaviour_save_location();
+		switch (saveLocation) {
 
-			switch(saveLocation) {
+			case PROMPT_EVERY_TIME: {
 
-				case PROMPT_EVERY_TIME: {
+				downloadImageToSave(activity, uri, (info, cacheFile, mimetype) -> {
 
-					Log.i(TAG, "Android version Lollipop or higher, showing SAF prompt");
+					final String filename = General.filenameFromString(info.original.url.value);
+
+					createSAFDocumentWithIntent(
+							activity,
+							filename,
+							mimetype,
+							new CacheFileDataSource(cacheFile),
+							() -> General.quickToast(
+									activity,
+									R.string.action_save_image_success_no_path));
+				});
+
+				break;
+			}
+
+			case SYSTEM_DEFAULT: {
+
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+					Log.i(TAG, "Android version Q or higher, saving with MediaStore");
 
 					downloadImageToSave(activity, uri, (info, cacheFile, mimetype) -> {
 
-						final String filename = General.filenameFromString(info.urlOriginal);
+						final String filename = General.filenameFromString(info.original.url.value);
 
-						createSAFDocumentWithIntent(
+						mediaStoreDownloadsInsertFile(
 								activity,
 								filename,
 								mimetype,
+								cacheFile.getFile().map(File::length).orElse(0L),
 								new CacheFileDataSource(cacheFile),
 								() -> General.quickToast(
 										activity,
 										R.string.action_save_image_success_no_path));
 					});
 
-					break;
+				} else {
+					Log.i(TAG, "Android version below Q, saving with legacy method");
+
+					activity.requestPermissionWithCallback(
+							Manifest.permission.WRITE_EXTERNAL_STORAGE,
+							new LegacySaveImageCallback(activity, uri));
 				}
 
-				case SYSTEM_DEFAULT: {
-
-					Log.i(TAG, "Android version Lollipop or higher, saving to Downloads");
-
-					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-
-						Log.i(TAG, "Android version Q or higher, saving with MediaStore");
-
-						downloadImageToSave(activity, uri, (info, cacheFile, mimetype) -> {
-
-							final String filename = General.filenameFromString(info.urlOriginal);
-
-							mediaStoreDownloadsInsertFile(
-									activity,
-									filename,
-									mimetype,
-									cacheFile.getFile().map(File::length).orElse(0L),
-									new CacheFileDataSource(cacheFile),
-									() -> General.quickToast(
-											activity,
-											R.string.action_save_image_success_no_path));
-						});
-
-					} else {
-						Log.i(TAG, "Android version below Q, saving with legacy method");
-
-						activity.requestPermissionWithCallback(
-								Manifest.permission.WRITE_EXTERNAL_STORAGE,
-								new LegacySaveImageCallback(activity, uri));
-					}
-
-					break;
-				}
-
-				default: {
-					BugReportActivity.handleGlobalError(activity, new RuntimeException(
-							"Missing handler for preference value " + saveLocation));
-				}
+				break;
 			}
 
-		} else {
-
-			Log.i(TAG, "Android version before Lollipop, using legacy save method");
-
-			activity.requestPermissionWithCallback(
-					Manifest.permission.WRITE_EXTERNAL_STORAGE,
-					new LegacySaveImageCallback(activity, uri));
+			default: {
+				BugReportActivity.handleGlobalError(activity, new RuntimeException(
+						"Missing handler for preference value " + saveLocation));
+			}
 		}
 	}
 
 	private static void showUnexpectedStorageErrorDialog(
 			@NonNull final BaseActivity activity,
 			@NonNull final Throwable throwable,
-			@NonNull final String uri) {
+			@NonNull final UriString uri) {
 
 		General.showResultDialog(activity, new RRError(
 				activity.getString(R.string.error_unexpected_storage_title),
@@ -518,7 +471,6 @@ public class FileUtils {
 				String mimetype);
 	}
 
-	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	private static void internalDownloadImageToSaveAudio(
 			@NonNull final BaseActivity activity,
 			@NonNull final ImageInfo info,
@@ -528,18 +480,15 @@ public class FileUtils {
 		final CacheManager cacheManager = CacheManager.getInstance(activity);
 
 		cacheManager.makeRequest(new CacheRequest(
-				General.uriFromString(info.urlAudioStream),
+				info.urlAudioStream,
 				RedditAccountManager.getAnon(),
 				null,
 				new Priority(Constants.Priority.IMAGE_VIEW),
 				DownloadStrategyIfNotCached.INSTANCE,
 				Constants.FileType.IMAGE,
-				CacheRequest.DOWNLOAD_QUEUE_IMMEDIATE,
+				CacheRequest.DownloadQueueType.IMMEDIATE,
 				activity,
 				new CacheRequestCallbacks() {
-					@Override
-					public void onDownloadNecessary() {
-					}
 
 					@Override
 					public void onFailure(@NonNull final RRError error) {
@@ -557,21 +506,21 @@ public class FileUtils {
 						try {
 							final CacheManager.WritableCacheFile output
 									= cacheManager.openNewCacheFile(
-											Objects.requireNonNull(General.uriFromString(
-													"redreader://muxedmedia/"
-															+ UUID.randomUUID()
-															+ ".mp4")),
-											RedditAccountManager.getAnon(),
-											Constants.FileType.IMAGE,
-											session,
-											"video/mp4",
-											CacheCompressionType.NONE);
+									new UriString(
+											"redreader://muxedmedia/"
+													+ UUID.randomUUID()
+													+ ".mp4"),
+									RedditAccountManager.getAnon(),
+									Constants.FileType.IMAGE,
+									session,
+									"video/mp4",
+									CacheCompressionType.NONE);
 
 							final File file = output.writeExternally();
 
 							MediaUtils.muxFiles(
 									file,
-									new File[] {
+									new File[]{
 											cacheFile.getFile().orThrow(() -> new RuntimeException(
 													"Audio file not found")),
 											video.getFile().orThrow(() -> new RuntimeException(
@@ -587,15 +536,15 @@ public class FileUtils {
 													output.getReadableCacheFile(),
 													"video/mp4");
 
-										} catch(final Exception e) {
+										} catch (final Exception e) {
 											General.showResultDialog(
 													activity,
 													General.getGeneralErrorForFailure(
 															activity,
-															CacheRequest.REQUEST_FAILURE_STORAGE,
+															CacheRequest.RequestFailureType.STORAGE,
 															e,
 															null,
-															info.urlOriginal,
+															info.original.url,
 															Optional.empty()));
 										}
 									},
@@ -610,18 +559,18 @@ public class FileUtils {
 													true,
 													e,
 													null,
-													info.urlOriginal,
+													info.original.url,
 													null)));
 
-						} catch(final Exception e) {
+						} catch (final Exception e) {
 							General.showResultDialog(
 									activity,
 									General.getGeneralErrorForFailure(
 											activity,
-											CacheRequest.REQUEST_FAILURE_STORAGE,
+											CacheRequest.RequestFailureType.STORAGE,
 											e,
 											null,
-											info.urlOriginal,
+											info.original.url,
 											Optional.empty()));
 						}
 					}
@@ -630,7 +579,7 @@ public class FileUtils {
 
 	public static void downloadImageToSave(
 			@NonNull final BaseActivity activity,
-			@NonNull final String uri,
+			@NonNull final UriString uri,
 			@NonNull final DownloadImageToSaveSuccessCallback callback) {
 
 		LinkHandler.getImageInfo(
@@ -648,13 +597,13 @@ public class FileUtils {
 					public void onSuccess(final ImageInfo info) {
 
 						CacheManager.getInstance(activity).makeRequest(new CacheRequest(
-								General.uriFromString(info.urlOriginal),
+								info.original.url,
 								RedditAccountManager.getAnon(),
 								null,
 								new Priority(Constants.Priority.IMAGE_VIEW),
 								DownloadStrategyIfNotCached.INSTANCE,
 								Constants.FileType.IMAGE,
-								CacheRequest.DOWNLOAD_QUEUE_IMMEDIATE,
+								CacheRequest.DownloadQueueType.IMMEDIATE,
 								activity,
 								new CacheRequestCallbacks() {
 									@Override
@@ -678,8 +627,7 @@ public class FileUtils {
 											final boolean fromCache,
 											final String mimetype) {
 
-										if(info.urlAudioStream != null
-												&& Build.VERSION.SDK_INT >= 18) {
+										if (info.urlAudioStream != null) {
 											Log.i(TAG, "Also downloading audio stream...");
 
 											internalDownloadImageToSaveAudio(
@@ -708,17 +656,17 @@ public class FileUtils {
 
 		final String[] pathSegments = path.split("/");
 
-		if(pathSegments.length == 0) {
+		if (pathSegments.length == 0) {
 			return Optional.empty();
 		}
 
 		final String[] dotSegments = pathSegments[pathSegments.length - 1].split("\\.");
 
-		if(dotSegments.length < 2) {
+		if (dotSegments.length < 2) {
 			return Optional.empty();
 		}
 
-		if(dotSegments.length == 2 && dotSegments[0].isEmpty()) {
+		if (dotSegments.length == 2 && dotSegments[0].isEmpty()) {
 			return Optional.empty();
 		}
 
@@ -732,35 +680,36 @@ public class FileUtils {
 
 		File result = base;
 
-		for(final String component : components) {
+		for (final String component : components) {
 			result = new File(result, component);
 		}
 
 		return result;
 	}
 
-	@NonNull private static final Object sMkdirsLock = new Object();
+	@NonNull
+	private static final Object sMkdirsLock = new Object();
 
 	public static void mkdirs(@NonNull final File file) throws IOException {
 
-		synchronized(sMkdirsLock) {
+		synchronized (sMkdirsLock) {
 
-			if(file.isDirectory()) {
+			if (file.isDirectory()) {
 				return;
 			}
 
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
 				try {
 					Files.createDirectories(file.toPath());
-				} catch(final Exception e) {
+				} catch (final Exception e) {
 					throw new IOException(
 							"Failed to create dirs " + file.getAbsolutePath(),
 							e);
 				}
 
 			} else {
-				if(!file.mkdirs()) {
+				if (!file.mkdirs()) {
 					throw new IOException("Failed to create dirs " + file.getAbsolutePath());
 				}
 			}
