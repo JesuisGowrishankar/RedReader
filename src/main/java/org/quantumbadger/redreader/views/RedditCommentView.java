@@ -18,6 +18,7 @@
 package org.quantumbadger.redreader.views;
 
 import android.content.Context;
+import android.text.SpannableStringBuilder;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +34,8 @@ import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.activities.BaseActivity;
+import org.quantumbadger.redreader.common.AndroidCommon;
+import org.quantumbadger.redreader.common.BetterSSB;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.Optional;
 import org.quantumbadger.redreader.common.PrefsUtility;
@@ -46,6 +49,8 @@ import org.quantumbadger.redreader.reddit.prepared.RedditChangeDataManager;
 import org.quantumbadger.redreader.reddit.prepared.RedditParsedComment;
 import org.quantumbadger.redreader.reddit.prepared.RedditRenderableComment;
 import org.quantumbadger.redreader.common.Fonts;
+
+import java.util.Observer;
 
 
 public class RedditCommentView extends FlingableItemView
@@ -68,6 +73,8 @@ public class RedditCommentView extends FlingableItemView
 	private final float mBodyFontScale;
 
 	private final boolean mShowLinkButtons;
+
+	private CharSequence mHeaderText;
 
 	private final CommentListener mListener;
 
@@ -430,13 +437,27 @@ public class RedditCommentView extends FlingableItemView
 
 		final boolean isCollapsed = mComment.isCollapsed(mChangeDataManager);
 
-		final CharSequence headerText = renderableComment.getHeader(
+		final BetterSSB header = renderableComment.getHeader(
 				mTheme,
 				mChangeDataManager,
 				activity,
 				ageUnits,
 				postTimestamp,
 				parentCommentTimestamp);
+
+		final Observer observer = (observable, o) -> {
+			if (isCollapsed) {
+				mHeaderText = "[ + ]  " + o;
+			} else {
+				mHeaderText = (SpannableStringBuilder) o;
+			}
+
+			AndroidCommon.runOnUiThread(() -> mHeader.setText(mHeaderText));
+		};
+
+		header.addObserver(observer);
+
+		mHeaderText = header.get();
 
 		mHeader.setContentDescription(renderableComment.getAccessibilityHeader(
 				mTheme,
@@ -452,12 +473,12 @@ public class RedditCommentView extends FlingableItemView
 			setFlingingEnabled(false);
 			//noinspection SetTextI18n
 			mHeader.setText("[ + ]  "
-					+ headerText); // Note that this removes formatting (which is fine)
+					+ mHeaderText); // Note that this removes formatting (which is fine)
 			mBodyHolder.setVisibility(GONE);
 
 		} else {
 			setFlingingEnabled(true);
-			mHeader.setText(headerText);
+			mHeader.setText(mHeaderText);
 			mBodyHolder.setVisibility(VISIBLE);
 		}
 

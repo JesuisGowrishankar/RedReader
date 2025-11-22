@@ -34,6 +34,7 @@ dependencies {
 	implementation(libs.androidx.preference)
 	implementation(libs.androidx.recyclerview)
 	implementation(libs.androidx.swiperefreshlayout)
+	implementation(libs.androidx.window)
 
 	implementation(libs.google.flexbox)
 	implementation(libs.google.material)
@@ -79,8 +80,8 @@ android {
 		applicationId = "org.quantumbadger.redreader"
 		minSdk = libs.versions.sdk.min.get().toInt()
 		targetSdk = libs.versions.sdk.target.get().toInt()
-		versionCode = 114
-		versionName = "1.24.1-G"
+		versionCode = 115
+		versionName = "1.25-G"
 
 		vectorDrawables.generatedDensities("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -182,4 +183,8 @@ tasks.register("Checkstyle", Checkstyle::class) {
 	classpath = files()
 	maxWarnings = 0
 	configFile = rootProject.file("${project.rootDir}/config/checkstyle/checkstyle.xml")
+}
+
+tasks.withType<JavaCompile> {
+	options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
 }

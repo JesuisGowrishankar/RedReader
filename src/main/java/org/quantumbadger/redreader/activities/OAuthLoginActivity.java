@@ -20,31 +20,199 @@ package org.quantumbadger.redreader.activities;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Message;
+import android.util.Log;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.jetbrains.annotations.Nullable;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.RedReader;
+import org.quantumbadger.redreader.common.DialogUtils;
+import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.TorCommon;
 import org.quantumbadger.redreader.reddit.api.RedditOAuth;
+
+import java.util.ArrayList;
+import java.util.Objects;
 
 import info.guardianproject.netcipher.webkit.WebkitProxy;
 
 public class OAuthLoginActivity extends ViewsBaseActivity {
 
-	private WebView mWebView;
+	private static final String TAG = "OAuthLoginActivity";
+
+	private static final String OAUTH_HOST = "rr_oauth_redir";
+	private static final String REDREADER_SCHEME = "redreader";
+	private static final String HTTP_SCHEME = "http";
+
+	private final ArrayList<WebView> webViewStack = new ArrayList<>();
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+
+		clearBaseActivityListing();
+
+		for (final WebView w : webViewStack) {
+			w.destroy();
+		}
+
 		final CookieManager cookieManager = CookieManager.getInstance();
-		cookieManager.removeAllCookie();
+		cookieManager.removeAllCookies(null);
+	}
+
+	@SuppressLint("SetJavaScriptEnabled")
+	private @Nullable WebView createWebView() {
+		final WebView view = new WebView(this);
+
+		final CookieManager cookieManager = CookieManager.getInstance();
+		cookieManager.removeAllCookies(null);
+		cookieManager.setAcceptCookie(true);
+		CookieManager.getInstance().setAcceptThirdPartyCookies(view, true);
+
+		if (TorCommon.isTorEnabled()) {
+			try {
+				final boolean result = WebkitProxy.setProxy(
+						RedReader.class.getCanonicalName(),
+						getApplicationContext(),
+						view,
+						"127.0.0.1",
+						8118);
+				if (!result) {
+					BugReportActivity.handleGlobalError(
+							this,
+							getResources().getString(R.string.error_tor_setting_failed));
+					return null;
+				}
+			} catch (final Exception e) {
+				BugReportActivity.handleGlobalError(this, e);
+				return null;
+			}
+		}
+
+		final WebSettings settings = view.getSettings();
+
+		settings.setBuiltInZoomControls(false);
+		settings.setJavaScriptEnabled(true);
+		settings.setUseWideViewPort(true);
+		settings.setLoadWithOverviewMode(true);
+		settings.setDomStorageEnabled(true);
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+			settings.setSaveFormData(false);
+		}
+		settings.setDatabaseEnabled(false);
+		settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+		settings.setDisplayZoomControls(false);
+
+		// Suggested by Reddit to work around ReCAPTCHA issues
+		settings.setSupportMultipleWindows(true);
+		settings.setJavaScriptCanOpenWindowsAutomatically(true);
+
+		view.setWebChromeClient(new WebChromeClient() {
+			@Override
+			public boolean onConsoleMessage(final ConsoleMessage consoleMessage) {
+				return true;
+			}
+
+			@Override
+			public boolean onCreateWindow(
+					final WebView view,
+					final boolean isDialog,
+					final boolean isUserGesture,
+					final Message resultMsg) {
+
+				// https://stackoverflow.com/a/11280814
+				Log.i(TAG, "New window created");
+				final WebView newWebView = createWebView();
+				webViewStack.add(newWebView);
+				setBaseActivityListing(newWebView);
+				final WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+				transport.setWebView(newWebView);
+				resultMsg.sendToTarget();
+				return true;
+			}
+
+			@Override
+			public void onCloseWindow(final WebView window) {
+				if (webViewStack.size() > 1) {
+					final WebView removed = webViewStack.remove(webViewStack.size() - 1);
+					removed.destroy();
+					setBaseActivityListing(webViewStack.get(webViewStack.size() - 1));
+				}
+			}
+		});
+
+		view.setWebViewClient(new WebViewClient() {
+			@Override
+			public boolean shouldOverrideUrlLoading(
+					final WebView view,
+					final WebResourceRequest request) {
+
+				final Uri url = request.getUrl();
+				if (Objects.equals(url.getHost(), OAUTH_HOST) &&
+						(Objects.equals(url.getScheme(), REDREADER_SCHEME) ||
+								Objects.equals(url.getScheme(), HTTP_SCHEME))) {
+					final Intent intent = new Intent();
+					intent.putExtra("url", url.toString());
+					setResult(123, intent);
+					finish();
+
+				} else {
+					setTitle(url.getHost());
+					return false;
+				}
+
+				return true;
+			}
+
+			@Override
+			public void onReceivedHttpError(
+					final WebView view,
+					final WebResourceRequest request,
+					final WebResourceResponse errorResponse) {
+
+				// onReceivedHttpError: https://www.reddit.com/svc/shreddit/account/login, error = 401
+				Log.e(TAG, "onReceivedHttpError: "
+						+ request.getUrl()
+						+ ", error = "
+						+ errorResponse.getStatusCode());
+
+				if (request.getUrl().toString().equals("https://www.reddit.com/svc/shreddit/account/login")
+						&& errorResponse.getStatusCode() / 100 == 4) {
+					DialogUtils.showDialogPositiveNegative(
+							OAuthLoginActivity.this,
+							getString(R.string.login_reddit_error_title),
+							getString(R.string.login_reddit_error_message),
+							R.string.dialog_continue,
+							R.string.dialog_cancel,
+							() -> {
+								LinkHandler.openCustomTab(
+										OAuthLoginActivity.this,
+										RedditOAuth.getPromptUri(),
+										null,
+										false
+								);
+								finish();
+							},
+							() -> {
+								finish();
+							}
+					);
+				}
+			}
+		});
+
+		return view;
 	}
 
 	@SuppressLint("SetJavaScriptEnabled")
@@ -55,73 +223,13 @@ public class OAuthLoginActivity extends ViewsBaseActivity {
 
 		super.onCreate(savedInstanceState);
 
-		mWebView = new WebView(this);
+		final WebView webView = createWebView();
 
-		if(TorCommon.isTorEnabled()) {
-			try {
-				final boolean result = WebkitProxy.setProxy(
-						RedReader.class.getCanonicalName(),
-						getApplicationContext(),
-						mWebView,
-						"127.0.0.1",
-						8118);
-				if(!result) {
-					BugReportActivity.handleGlobalError(
-							this,
-							getResources().getString(R.string.error_tor_setting_failed));
-				}
-			} catch(final Exception e) {
-				BugReportActivity.handleGlobalError(this, e);
-			}
+		if (webView != null) {
+			webViewStack.add(webView);
+			setBaseActivityListing(webView);
+			webView.loadUrl(RedditOAuth.getPromptUri().toString());
 		}
-
-		final WebSettings settings = mWebView.getSettings();
-
-		settings.setBuiltInZoomControls(false);
-		settings.setJavaScriptEnabled(true);
-		settings.setJavaScriptCanOpenWindowsAutomatically(false);
-		settings.setUseWideViewPort(true);
-		settings.setLoadWithOverviewMode(true);
-		settings.setDomStorageEnabled(true);
-		settings.setSaveFormData(false);
-		settings.setSavePassword(false);
-		settings.setDatabaseEnabled(false);
-		settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-		settings.setDisplayZoomControls(false);
-
-		mWebView.setWebChromeClient(new WebChromeClient() {
-			@Override
-			public boolean onConsoleMessage(final ConsoleMessage consoleMessage) {
-				return true;
-			}
-		});
-
-		mWebView.setWebViewClient(new WebViewClient() {
-			@Override
-			public boolean shouldOverrideUrlLoading(
-					final WebView view,
-					final String url) {
-
-				if(url.startsWith("http://rr_oauth_redir")
-						|| url.startsWith("redreader://rr_oauth_redir")) { // TODO constant
-
-					final Intent intent = new Intent();
-					intent.putExtra("url", url);
-					setResult(123, intent);
-					finish();
-
-				} else {
-					setTitle(Uri.parse(url).getHost());
-					return false;
-				}
-
-				return true;
-			}
-		});
-
-		setBaseActivityListing(mWebView);
-
-		mWebView.loadUrl(RedditOAuth.getPromptUri().toString());
 	}
 
 	@Override
@@ -129,9 +237,9 @@ public class OAuthLoginActivity extends ViewsBaseActivity {
 
 		super.onPause();
 
-		if(mWebView != null) {
-			mWebView.onPause();
-			mWebView.pauseTimers();
+		for (final WebView w : webViewStack) {
+			w.onPause();
+			w.pauseTimers();
 		}
 	}
 
@@ -139,9 +247,9 @@ public class OAuthLoginActivity extends ViewsBaseActivity {
 	protected void onResume() {
 		super.onResume();
 
-		if(mWebView != null) {
-			mWebView.resumeTimers();
-			mWebView.onResume();
+		for (final WebView w : webViewStack) {
+			w.resumeTimers();
+			w.onResume();
 		}
 	}
 }

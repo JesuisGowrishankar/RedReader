@@ -17,8 +17,8 @@
 
 package org.quantumbadger.redreader.reddit.kthings
 
-import android.net.Uri
 import android.os.Parcelable
+import androidx.core.net.toUri
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import org.quantumbadger.redreader.common.LinkHandler
@@ -39,6 +39,7 @@ data class RedditComment(
 	val author: UrlEncodedString? = null,
 	val subreddit: UrlEncodedString? = null,
 	val author_flair_text: UrlEncodedString? = null,
+	val author_flair_richtext: List<MaybeParseError<FlairEmoteData>>?= null,
 	val archived: Boolean = false,
 	val likes: Boolean? = null,
 	val score_hidden: Boolean = false,
@@ -77,6 +78,33 @@ data class RedditComment(
 	// TODO do this in the HTML parser instead
 	fun copyWithNewBodyHtml(value: String) = copy(body_html = UrlEncodedString(value))
 
+	@Serializable
+	@Parcelize
+	data class EmoteMetadata(
+		val status: String,
+		val e: String,
+		val m: String,
+		val s: ImageMetadata,
+		val t: String,
+		val id: String
+	) : Parcelable
+
+	@Serializable
+	@Parcelize
+	data class ImageMetadata(
+		val x: String,
+		val y: String,
+		val u: String? = null
+	) : Parcelable
+
+	@Serializable
+	@Parcelize
+	data class FlairEmoteData(
+		val e: String,
+		val a: String,
+		val u: String
+	) : Parcelable
+
 	override fun getIdAlone() = id
 
 	override fun getIdAndType() = name
@@ -91,7 +119,7 @@ data class RedditComment(
 			if (result.startsWith("/")) {
 				result = "https://reddit.com$result"
 			}
-			PostCommentListingURL.parse(Uri.parse(result))
+			PostCommentListingURL.parse(result.toUri())
 
 		} ?: PostCommentListingURL(
 			null,

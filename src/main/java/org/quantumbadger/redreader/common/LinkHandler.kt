@@ -28,6 +28,7 @@ import android.os.Parcelable
 import android.util.Log
 import android.util.TypedValue
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.quantumbadger.redreader.R
 import org.quantumbadger.redreader.activities.AlbumListingActivity
@@ -96,7 +97,7 @@ object LinkHandler {
 		}
 
 		if (url.value.startsWith("rr://")) {
-			val rrUri = Uri.parse(url.value)
+			val rrUri = url.value.toUri()
 
 			if (rrUri.authority == "msg") {
 				AndroidCommon.runOnUiThread {
@@ -146,7 +147,7 @@ object LinkHandler {
 
 				AlbumViewMode.INTERNAL_BROWSER -> {
 					if (PrefsUtility.pref_behaviour_usecustomtabs()) {
-						openCustomTab(activity, normalUrl, post)
+						openCustomTab(activity, normalUrl, post, true)
 					} else {
 						openInternalBrowser(activity, normalUrlString, post)
 					}
@@ -262,13 +263,13 @@ object LinkHandler {
 					+ youtuDotBeMatcher.group(1)
 					+ (youtuDotBeMatcher.group(2)?.takeUnless { it.isEmpty() }
 				?.let { "&${it.substring(1)}" } ?: ""))
-			if (openWebBrowser(activity, Uri.parse(youtuBeUrl), fromExternalIntent)) {
+			if (openWebBrowser(activity, youtuBeUrl.toUri(), fromExternalIntent)) {
 				return
 			}
 		}
 
 		if (PrefsUtility.pref_behaviour_usecustomtabs()) {
-			openCustomTab(activity, normalUrl, post)
+			openCustomTab(activity, normalUrl, post, true)
 		} else {
 			openInternalBrowser(activity, normalUrlString, post)
 		}
@@ -383,7 +384,7 @@ object LinkHandler {
 
 			LinkAction.EXTERNAL -> try {
 				val intent = Intent(Intent.ACTION_VIEW)
-				intent.setData(Uri.parse(uri.value))
+				intent.setData(uri.value.toUri())
 				activity.startActivity(intent)
 			} catch (e: ActivityNotFoundException) {
 				quickToast(
@@ -482,7 +483,8 @@ object LinkHandler {
 	fun openCustomTab(
 		activity: AppCompatActivity,
 		uri: Uri,
-		post: RedditPost?
+		post: RedditPost?,
+		showShare: Boolean
 	) {
 		try {
 			val intent = Intent()
@@ -494,11 +496,17 @@ object LinkHandler {
 			bundle.putBinder("android.support.customtabs.extra.SESSION", null)
 			intent.putExtras(bundle)
 
-			intent.putExtra("android.support.customtabs.extra.SHARE_MENU_ITEM", true)
+			intent.putExtra("androidx.browser.customtabs.extra.SHARE_STATE", if (showShare) 1 else 2)
+			intent.putExtra("android.support.customtabs.extra.ENABLE_URLBAR_HIDING", true)
+			intent.putExtra("org.chromium.chrome.browser.customtabs.EXTRA_DISABLE_STAR_BUTTON", true)
+			intent.putExtra("android.support.customtabs.extra.SEND_TO_EXTERNAL_HANDLER", false)
+			intent.putExtra("androidx.browser.customtabs.extra.OPEN_IN_BROWSER_STATE", if (showShare) 1 else 2)
+			intent.putExtra("androidx.browser.customtabs.extra.ENABLE_EPHEMERAL_BROWSING", true)
+
 
 			val typedValue = TypedValue()
 			activity.theme.resolveAttribute(
-				com.google.android.material.R.attr.colorPrimary,
+				androidx.appcompat.R.attr.colorPrimary,
 				typedValue,
 				true
 			)
@@ -508,9 +516,8 @@ object LinkHandler {
 				typedValue.data
 			)
 
-			intent.putExtra("android.support.customtabs.extra.ENABLE_URLBAR_HIDING", true)
-
 			activity.startActivity(intent)
+
 		} catch (e: ActivityNotFoundException) {
 			// No suitable web browser installed. Use internal browser.
 			openInternalBrowser(activity, UriString(uri.toString()), post)
@@ -537,6 +544,20 @@ object LinkHandler {
 	private val deviantartPattern: Pattern =
 		Pattern.compile("https://www\\.deviantart\\.com/([\\w\\-]+)/art/([\\w\\-]+)")
 	private val giphyPattern: Pattern = Pattern.compile(".*[^A-Za-z]giphy\\.com/gifs/(\\w+).*")
+
+	@JvmStatic
+	fun isRedGifsImage(url: UriString): Boolean {
+		val matchRedgifs = redgifsPattern.matcher(url.value)
+		if (matchRedgifs.find()) {
+			matchRedgifs.group(1)?.let { imgId ->
+				if (imgId.length > 5) {
+					return true
+				}
+			}
+		}
+
+		return false
+	}
 
 	@JvmStatic
 	fun isProbablyAnImage(url: UriString?): Boolean {
@@ -566,15 +587,8 @@ object LinkHandler {
 			}
 		}
 
-		run {
-			val matchRedgifs = redgifsPattern.matcher(url.value)
-			if (matchRedgifs.find()) {
-				matchRedgifs.group(1)?.let { imgId ->
-					if (imgId.length > 5) {
-						return true
-					}
-				}
-			}
+		if (isRedGifsImage(url)) {
+			return true
 		}
 
 		run {
@@ -1257,7 +1271,7 @@ object LinkHandler {
 			uri = "http://$uri"
 		}
 
-		val parsedUri = Uri.parse(uri).normalizeScheme()
+		val parsedUri = uri.toUri().normalizeScheme()
 		val uriBuilder = parsedUri.buildUpon()
 
 		val authority = parsedUri.encodedAuthority

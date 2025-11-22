@@ -1,3 +1,31 @@
+/Alpha 363 (2025-11-09)
+Open RedGIFs in browser due to API shutdown, but still allow save media (without audio)
+Additional login workarounds
+
+/Alpha 362 (2025-11-08)
+Fix for status bar overlapping window on API 35+ devices
+Fix for playback speed icon size
+
+/Alpha 361 (2025-11-08)
+Fix for Reddit video permission denied issue
+Additional login workarounds
+Dependency updates
+Support for 16kB page size devices
+Detect and collapse more sticky posts by bots
+
+/Alpha 360 (2025-10-07)
+Trying workaround suggested by Reddit for login issue (allowing multiple windows) which unfortunately doesn't work for me!
+
+/Alpha 359 (2025-04-21)
+Added video frame step controls (thanks to ecawthorne and japanesephundroid)
+Make floating toolbar buttons respond to left handed mode (thanks to ecawthorne)
+Added support for emotes in comment flairs (thanks to bharatknv)
+Added "Mark as Read/Unread" fling action, and optional context menu item (thanks to JoshAusHessen and codeofdusk)
+Show label on crossposts, and add "Go to Crosspost Origin" to post menu (thanks to folkemat)
+Added preference to prevent posts being marked as read when clicked (thanks to Daniel Ho)
+Remove random subreddit feature which is no longer supported by Reddit (thanks to Mark Yu)
+Codebase improvements: fixed deprecations (thanks to Alexey Rochev)
+
 /Alpha 358 (2025-03-12)
 Added video playback speed control (thanks to folkemat)
 
@@ -42,6 +70,7 @@ Minimum supported Android version is now 5.0
 /Alpha 350 (2024-04-14)
 Ability to upload an image when submitting a comment (thanks to folkemat)
 Comments submitted by current user now have username highlighted (thanks to folkemat)
+Added preference to prevent posts being marked as read when clicked (thanks to Daniel Ho)
 
 /Alpha 349 (2024-03-24)
 Ability to block users in user profile (thanks to folkemat)

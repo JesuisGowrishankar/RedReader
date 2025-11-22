@@ -60,12 +60,14 @@ import org.quantumbadger.redreader.reddit.prepared.RedditChangeDataManager
 import org.quantumbadger.redreader.reddit.prepared.RedditPreparedPost
 import org.quantumbadger.redreader.reddit.things.InvalidSubredditNameException
 import org.quantumbadger.redreader.reddit.things.SubredditCanonicalId
+import org.quantumbadger.redreader.reddit.url.PostCommentListingURL
 import org.quantumbadger.redreader.reddit.url.SubredditPostListURL
 import org.quantumbadger.redreader.reddit.url.UserProfileURL
 import org.quantumbadger.redreader.views.AccessibilityActionManager
 import org.quantumbadger.redreader.views.RedditPostView.PostSelectionListener
 import org.quantumbadger.redreader.views.bezelmenu.SideToolbarOverlay
 import org.quantumbadger.redreader.views.bezelmenu.VerticalToolbar
+
 
 object RedditPostActions {
 
@@ -77,6 +79,8 @@ object RedditPostActions {
 		HIDE(R.string.action_hide),
 		UNSAVE(R.string.action_unsave),
 		UNHIDE(R.string.action_unhide),
+		MARK_READ(R.string.action_mark_read),
+		MARK_UNREAD(R.string.action_mark_unread),
 		EDIT(R.string.action_edit),
 		DELETE(R.string.action_delete),
 		REPORT(R.string.action_report),
@@ -103,7 +107,9 @@ object RedditPostActions {
 		PIN(R.string.action_pin_subreddit),
 		UNPIN(R.string.action_unpin_subreddit),
 		SUBSCRIBE(R.string.action_subscribe_subreddit),
-		UNSUBSCRIBE(R.string.action_unsubscribe_subreddit)
+		UNSUBSCRIBE(R.string.action_unsubscribe_subreddit),
+		CROSSPOST_ORIGIN(R.string.action_crosspost_origin)
+
 	}
 
 	data class ActionDescriptionPair(
@@ -162,6 +168,18 @@ object RedditPostActions {
 						ActionDescriptionPair(
 							Action.HIDE,
 							R.string.action_hide
+						)
+					}
+
+					PostFlingAction.MARK_READ -> if (post.isRead()) {
+						ActionDescriptionPair(
+							Action.MARK_UNREAD,
+							R.string.action_mark_unread
+						)
+					} else {
+						ActionDescriptionPair(
+							Action.MARK_READ,
+							R.string.action_mark_read
 						)
 					}
 
@@ -281,6 +299,9 @@ object RedditPostActions {
 
 		if (isOpen) {
 			// TODO: add an action here to jump focus from the body of the post to its comments.
+		}
+		addAccessibilityActionFromDescriptionPair(from(post, PostFlingAction.MARK_READ))
+		if (isOpen) {
 			addAccessibilityActionFromDescriptionPair(from(post, PostFlingAction.GOTO_SUBREDDIT))
 			if (isAuthenticated) {
 				if (!post.isArchived && !(post.isLocked && !post.canModerate))
@@ -335,6 +356,8 @@ object RedditPostActions {
 			Action.UNSAVE -> action(post, activity, RedditAPI.ACTION_UNSAVE)
 			Action.HIDE -> action(post, activity, RedditAPI.ACTION_HIDE)
 			Action.UNHIDE -> action(post, activity, RedditAPI.ACTION_UNHIDE)
+			Action.MARK_READ -> post.markAsRead(activity, true)
+			Action.MARK_UNREAD -> post.markAsRead(activity, false)
 			Action.EDIT -> {
 				val editIntent = Intent(activity, CommentEditActivity::class.java)
 				editIntent.putExtra("commentIdAndType", post.src.idAndType)
@@ -363,6 +386,11 @@ object RedditPostActions {
 				) { _, _ -> action(post, activity, RedditAPI.ACTION_REPORT) }
 				.setNegativeButton(R.string.dialog_cancel, null)
 				.show()
+
+			Action.CROSSPOST_ORIGIN -> {
+				val crosspostOriginPost = PostCommentListingURL.forPostId(post.src.isCrosspost)
+				LinkHandler.onLinkClicked(activity, crosspostOriginPost.toUriString())
+			}
 
 			Action.EXTERNAL -> {
 				try {
@@ -688,6 +716,18 @@ object RedditPostActions {
 				)
 			)
 		}
+		if (post.src.isCrosspost != null) {
+			if (itemPref.contains(Action.CROSSPOST_ORIGIN)) {
+				menu.add(
+						RPVMenuItem(
+								String.format(
+										activity.getText(R.string.action_crosspost_origin).toString(),
+								),
+								Action.CROSSPOST_ORIGIN
+						)
+				)
+			}
+		}
 		if (!RedditAccountManager.getInstance(activity).defaultAccount.isAnonymous) {
 			if (itemPref.contains(Action.SAVE)) {
 				if (!post.isSaved) {
@@ -863,6 +903,13 @@ object RedditPostActions {
 					Action.USER_PROFILE
 				)
 			)
+		}
+		if (itemPref.contains(Action.MARK_READ)) {
+			if (post.isRead) {
+				menu.add(RPVMenuItem(activity, R.string.action_mark_unread, Action.MARK_UNREAD))
+			} else {
+				menu.add(RPVMenuItem(activity, R.string.action_mark_read, Action.MARK_READ))
+			}
 		}
 		if (itemPref.contains(Action.PROPERTIES)) {
 			menu.add(

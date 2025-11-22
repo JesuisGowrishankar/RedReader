@@ -19,7 +19,9 @@ package org.quantumbadger.redreader.reddit.prepared;
 
 import android.content.Context;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
+
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.common.AndroidCommon;
@@ -331,7 +333,8 @@ public final class RedditChangeDataManager {
 					timestamp,
 					Boolean.TRUE.equals(post.getLikes()),
 					Boolean.FALSE.equals(post.getLikes()),
-					post.getClicked() || mIsRead,
+					(PrefsUtility.pref_behaviour_mark_posts_as_read() && post.getClicked())
+							|| mIsRead,
 					post.getSaved(),
 					post.getHidden() ? true : null);
 		}
@@ -369,13 +372,13 @@ public final class RedditChangeDataManager {
 					mIsHidden);
 		}
 
-		Entry markRead(final TimestampUTC timestamp) {
+		Entry markRead(final TimestampUTC timestamp, final Boolean read) {
 
 			return new Entry(
 					timestamp,
 					mIsUpvoted,
 					mIsDownvoted,
-					true,
+					read,
 					mIsSaved,
 					mIsHidden);
 		}
@@ -561,11 +564,14 @@ public final class RedditChangeDataManager {
 		}
 	}
 
-	public void markRead(final TimestampUTC timestamp, final RedditIdAndType thing) {
+	public void markRead(
+		final TimestampUTC timestamp,
+		final RedditIdAndType thing,
+		final Boolean read) {
 
 		synchronized(mLock) {
 			final Entry existingEntry = get(thing);
-			final Entry updatedEntry = existingEntry.markRead(timestamp);
+			final Entry updatedEntry = existingEntry.markRead(timestamp, read);
 			set(thing, existingEntry, updatedEntry);
 		}
 	}
